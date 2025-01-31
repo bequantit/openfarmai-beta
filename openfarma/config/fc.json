@@ -1,0 +1,218 @@
+[
+  {
+    "name": "buscar_productos",
+    "description": "Esta función permite buscar productos en la base de datos vectorial utilizando descripciones, características, aplicaciones o problemas específicos relacionados con productos cosméticos y dermocosméticos. Es ideal para responder preguntas sobre ingredientes (por ejemplo, ácido hialurónico, retinol), zonas de aplicación (cara, cuerpo, contorno de ojos), tipos de piel (seca, grasa, mixta) o problemas comunes (acné, envejecimiento, manchas). La búsqueda considera tanto el texto descriptivo del producto como las palabras clave asociadas, asegurando resultados relevantes incluso si la consulta del vendedor no es precisa.\n\nEjemplos:\n- ¿Qué cremas tienen ácido hialurónico?\n- Estoy buscando un producto para piel seca.\n- ¿Tienen algo para el acné?\n- Recomiéndame cremas para contorno de ojos.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "problem": {
+          "type": "string",
+          "description": "Un texto o descripción del problema, consulta o característica buscada. Ejemplo: 'productos para piel seca', 'cremas hidratantes'."
+        }
+      },
+      "required": [
+        "problem"
+      ]
+    }
+  },
+  {
+    "name": "contar_marcas",
+    "description": "Devuelve el número total de marcas disponibles en la base de datos. Esto ayuda a los vendedores a tener una idea clara de la diversidad de marcas que ofrece la farmacia, permitiéndoles dar información precisa al cliente sobre la variedad de opciones disponibles.\n\nEjemplos:\n- ¿Cuántas marcas tienen disponibles?\n- ¿Cuántas marcas manejan en total?",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "listar_marcas",
+    "description": "Esta función lista todas las marcas de cosméticos o dermocosméticos disponibles en la base de datos. Es útil cuando el vendedor necesita informar al cliente sobre todas las marcas que se manejan o explorar opciones antes de sugerir productos específicos.\n\nEjemplos:\n- ¿Qué marcas manejan?\n- Dime todas las marcas que tienen.\n- ¿Pueden decirme las marcas disponibles?",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "verificar_marca",
+    "description": "Permite verificar si una marca específica está disponible en la base de datos. Útil para confirmar rápidamente si se maneja una marca mencionada por el cliente.\n\nEjemplos:\n- ¿Tienen productos de Neutrogena?\n- ¿Manejan la marca Revlon?\n- ¿Está disponible Cetaphil?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "marca": {
+          "type": "string",
+          "description": "El nombre de la marca a verificar. Ejemplo: 'Cetaphil', 'Eucerin'."
+        }
+      },
+      "required": [
+        "marca"
+      ]
+    }
+  },
+  {
+    "name": "contar_productos_con_stock",
+    "description": "Devuelve el número total de productos con stock mayor a cero en la base de datos. Esto ayuda a evaluar la disponibilidad general de productos y permite a los vendedores saber cuántas opciones tienen para ofrecer.\n\nEjemplos:\n- ¿Cuántos productos tienen en existencia?\n- ¿Cuántos productos están disponibles para la venta?",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "contar_productos_en_promocion",
+    "description": "Devuelve el número total de productos en promoción en la base de datos. Esto ayuda a evaluar la disponibilidad general de productos en promoción y permite a los vendedores saber cuántas opciones tienen para ofrecer.\n\nEjemplos:\n- ¿Cuántos productos están en promoción?\n- ¿Cuántos productos están disponibles para la venta?",
+    "parameters": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "buscar_productos_por_precio",
+    "description": "Permite buscar productos en función de un rango de precios. Es ideal para clientes con presupuestos específicos o para identificar promociones en productos de un precio determinado.\n\nEjemplos:\n- ¿Qué productos tienen entre $1000 y $2000?\n- Dime opciones económicas por menos de $500.\n- ¿Tienen algo alrededor de $1500?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "precio_min": {
+          "type": "number",
+          "description": "El precio mínimo del rango de búsqueda. Ejemplo: 1000."
+        },
+        "precio_max": {
+          "type": "number",
+          "description": "El precio máximo del rango de búsqueda. Ejemplo: 2000."
+        }
+      },
+      "required": [
+        "precio_min",
+        "precio_max"
+      ]
+    }
+  },
+  {
+    "name": "buscar_productos_por_zona_aplicacion",
+    "description": "Encuentra productos basados en la zona de aplicación, como cara, cuerpo, manos, etc. Útil para consultas específicas sobre dónde se deben usar los productos.\n\nEjemplos:\n- ¿Qué productos tienen para el contorno de ojos?\n- Recomiéndame algo para las manos.\n- ¿Tienen productos para el cuero cabelludo?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "zona_aplicacion": {
+          "type": "string",
+          "description": "La zona del cuerpo donde se aplica el producto. Ejemplo: 'cara', 'manos', 'cuerpo'."
+        }
+      },
+      "required": [
+        "zona_aplicacion"
+      ]
+    }
+  },
+  {
+    "name": "buscar_productos_por_ingrediente",
+    "description": "Busca productos que contengan un ingrediente específico. Ideal para clientes interesados en productos con ingredientes activos como ácido hialurónico, retinol, vitamina C, entre otros.\n\nEjemplos:\n- ¿Qué productos tienen retinol?\n- Dime opciones con vitamina C.\n- ¿Hay algo con ácido salicílico?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "ingrediente": {
+          "type": "string",
+          "description": "El nombre del ingrediente activo a buscar. Ejemplo: 'retinol', 'vitamina C'."
+        }
+      },
+      "required": [
+        "ingrediente"
+      ]
+    }
+  },
+  {
+    "name": "buscar_productos_por_presentacion",
+    "description": "Encuentra productos basados en su tipo de presentación, como gel, crema, spray, etc. Útil para clientes que prefieren un formato específico.\n\nEjemplos:\n- ¿Qué cremas tienen disponibles?\n- Busco productos en formato spray.\n- ¿Tienen opciones en gel?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "presentacion": {
+          "type": "string",
+          "description": "El tipo de presentación del producto. Ejemplo: 'crema', 'gel', 'spray'."
+        }
+      },
+      "required": [
+        "presentacion"
+      ]
+    }
+  },
+  {
+    "name": "listar_productos_en_categorias",
+    "description": "Devuelve una lista de productos organizados por categorías específicas, como medicamentos, cremas, lociones, etc. Esto permite una búsqueda más estructurada según el tipo de producto.\n\nEjemplos:\n- ¿Qué medicamentos tienen?\n- Muéstrame todas las cremas disponibles.\n- ¿Tienen lociones?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "categoria": {
+          "type": "string",
+          "description": "La categoría de productos a listar. Ejemplo: 'medicamentos', 'cremas', 'lociones'."
+        }
+      },
+      "required": [
+        "categoria"
+      ]
+    }
+  },
+  {
+    "name": "buscar_productos_por_problema_y_promocion",
+    "description": "Encuentra productos que resuelvan una problemática específica (como acné, manchas, piel seca, etc.) y que además estén en promoción. Es ideal para ofrecer opciones atractivas y económicas para necesidades específicas.\n\nEjemplos:\n- ¿Tienen algo para el acné que esté en promoción?\n- Busco productos para piel seca que estén en oferta.\n- ¿Hay alguna crema antiarrugas con descuento?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "problematica": {
+          "type": "string",
+          "description": "La problemática a resolver, como 'acné', 'manchas', 'piel seca', etc."
+        }
+      },
+      "required": [
+        "problematica"
+      ]
+    }
+  },
+  {
+    "name": "buscar_productos_por_presentacion_y_tamano",
+    "description": "Permite buscar productos según su tipo de presentación (crema, gel, emulsión, etc.) y un tamaño específico. Esto es útil para clientes que buscan un formato particular con un tamaño exacto o dentro de un rango.\n\nEjemplos:\n- ¿Qué cremas tienen en tamaño de 200 ml?\n- Busco un gel de 50 g.\n- ¿Hay emulsiones pequeñas, como de 30 ml?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "presentacion": {
+          "type": "string",
+          "description": "El tipo de presentación del producto, como 'crema', 'gel', 'emulsión'."
+        },
+        "unidad": {
+          "type": "string",
+          "description": "La unidad de medida a buscar, como 'ml', 'g', o 'mg'."
+        },
+        "valor": {
+          "type": "number",
+          "description": "El valor numérico del tamaño, como 50, 100, 200."
+        }
+      },
+      "required": [
+        "presentacion",
+        "unidad",
+        "valor"
+      ]
+    }
+  },
+  {
+    "name": "listar_productos_por_rango_precio_y_promocion",
+    "description": "Encuentra productos dentro de un rango de precio específico y que además estén en promoción. Útil para clientes que buscan opciones económicas dentro de un presupuesto.\n\nEjemplos:\n- ¿Qué productos tienen en oferta entre $500 y $1000?\n- Busco promociones de productos por menos de $2000.\n- ¿Tienen algo en promoción por menos de $1000?",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "precio_min": {
+          "type": "number",
+          "description": "El precio mínimo del rango de búsqueda. Ejemplo: 500."
+        },
+        "precio_max": {
+          "type": "number",
+          "description": "El precio máximo del rango de búsqueda. Ejemplo: 2000."
+        }
+      },
+      "required": [
+        "precio_min",
+        "precio_max"
+      ]
+    }
+  }
+]

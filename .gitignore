@@ -1,0 +1,12 @@
+# Ignore files
+*.pyc
+.env
+.streamlit/secrets.toml
+openfarma/config/credentials.json
+
+# Ignore folders
+venv/
+__pycache__/
+
+# Ignore DS_store
+*.DS_Store

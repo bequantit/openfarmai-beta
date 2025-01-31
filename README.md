@@ -31,6 +31,23 @@ The necessary packages are listed in the file: *requirements.txt*
 - Deactivate the virtual environment: `deactivate`
 - Remove the virtual environment (optional): `rm -rf venv`
 
+## Local Installation Note
+If you are installing OpenFarma Assistant on your personal computer (not deploying to Streamlit Cloud), do not install `pysqlite3-binary` from the requirements.txt file. This package is specifically required for cloud deployment and may conflict with your local SQLite installation.
+
+When installing locally, you can either:
+- Remove `pysqlite3-binary` from requirements.txt before running `pip install -r requirements.txt`
+- Or selectively install packages excluding pysqlite3: `pip install -r requirements.txt --exclude pysqlite3-binary`
+
+## Python Version Compatibility
+OpenFarma Assistant has been extensively tested and proven to work reliably with Python 3.10. This version provides the optimal balance of stability and feature support for all dependencies used in the project. While the system may work with other Python versions, we strongly recommend using Python 3.10 to ensure consistent behavior and avoid potential compatibility issues.
+
+Key benefits of using Python 3.10 with OpenFarma Assistant:
+- Verified compatibility with all required packages
+- Stable performance in production environments
+- Tested integration with OpenAI and Streamlit components
+- Consistent behavior across different operating systems
+
+
 ## Organization
 
 
