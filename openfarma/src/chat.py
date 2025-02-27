@@ -13,6 +13,7 @@ from email.mime.application import MIMEApplication
 
 from assistant.thread import Thread
 from .params import USER_CHAT_COLUMNS, BOT_CHAT_COLUMNS
+from .utils import PromptTracker
 
 def encodeImage(image_path: str) -> str:
     """Encode image to base64"""
@@ -163,6 +164,7 @@ class Chat:
         prompts_queue (List[str]): Queue of user prompts to process
         requires_action (bool): Flag for required user actions
         force_stream (bool): Flag to force response streaming
+        prompt_tracker (PromptTracker): Prompt tracker for message tracking
     
     Example:
         ```python
@@ -208,6 +210,7 @@ class Chat:
         self.prompts_queue: List[str] = []
         self.requires_action = False
         self.force_stream = False
+        self.prompt_tracker = PromptTracker()
         
         # Initialize with welcome message
         self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
@@ -343,6 +346,7 @@ class Chat:
         Clear all chat messages and reset the thread.
         Adds a welcome message after clearing.
         """
+        self.prompt_tracker.reportPrompts()  # Report prompts before clearing
         self.messages = []
         self.thread = Thread(self.thread.api_key)
         self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
@@ -430,6 +434,9 @@ class Chat:
             
             # Update processing status
             self.is_processing = bool(self.prompts_queue)
+
+            # Increment prompt counter
+            self.prompt_tracker.incrementPromptCount()
             
             return True
         return False

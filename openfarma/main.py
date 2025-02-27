@@ -122,7 +122,7 @@ def main():
         # Sidebar logout button
         st.sidebar.markdown("---")
         if st.sidebar.button("Cerrar Sesión", key="logout_button"):
-            # Export conversation and clear the chat
+            # Export conversation and report prompts
             metadata = {
                 'Usuario': st.session_state.username,
                 'Sucursal': st.session_state.store_name,
@@ -130,20 +130,24 @@ def main():
                 'Localidad': st.session_state.store_location
             }
             
-            # Export conversation to PDF
-            output_path = f"{HISTORY_PATH}/chatbot_{datetime.now().strftime('%Y-%m-%d %H-%M')}.pdf"
-            st.session_state.chat.exportConversation(format="pdf", metadata=metadata, output_path=output_path)
+            # Only export and send if there was actual conversation
+            if len(st.session_state.chat.messages) > 1:
+                # Export conversation to PDF
+                output_path = f"{HISTORY_PATH}/chatbot_{datetime.now().strftime('%Y-%m-%d %H-%M')}.pdf"
+                st.session_state.chat.exportConversation(format="pdf", metadata=metadata, output_path=output_path)
 
-            # Send conversation to email
-            st.session_state.chat.sendConversationEmail(from_email=EMAIL_FROM, 
-                                                        to_email=EMAIL_TO, 
-                                                        password=EMAIL_PASSWORD, 
-                                                        attachments=[output_path], 
-                                                        metadata=metadata)
+                # Send conversation to email
+                st.session_state.chat.sendConversationEmail(
+                    from_email=EMAIL_FROM, 
+                    to_email=EMAIL_TO, 
+                    password=EMAIL_PASSWORD, 
+                    attachments=[output_path], 
+                    metadata=metadata
+                )
             
-            # Clear chat
+            # Report final prompt count before clearing
             st.session_state.chat.clearChat()
-
+            
             # Clear authentication and session state
             st.session_state.authenticated = False
             st.session_state.username = None
@@ -151,6 +155,9 @@ def main():
             st.session_state.store_address = None
             st.session_state.store_location = None
             
+            # Remove keys from session state
+            del st.session_state.is_stock
+            del st.session_state.last_stock_update
             # Rerun the app
             st.rerun()
 

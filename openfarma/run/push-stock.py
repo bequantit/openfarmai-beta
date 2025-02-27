@@ -9,7 +9,6 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from openfarma.src.params import *
-from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
 
 # Authenticate with service account

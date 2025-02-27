@@ -93,5 +93,10 @@ HEADER_CAPTION = re.sub(pattern=' +', repl=' ',
 
 # email
 EMAIL_FROM      = st.secrets["EMAIL_FROM"]      # email sender
-EMAIL_TO        = st.secrets["EMAIL_TO"]      # email receiver
-EMAIL_PASSWORD  = st.secrets["EMAIL_PASSWORD"] # email password
+EMAIL_TO        = st.secrets["EMAIL_TO"]        # email receiver
+EMAIL_PASSWORD  = st.secrets["EMAIL_PASSWORD"]  # email password
+
+# Prompt tracking settings
+PROMPT_TRACKING_INTERVAL_MINUTES = 60        # Report time in minutes
+PROMPT_TRACKING_INTERVAL_HOURS   = 1         # Report time in hours
+PROMPT_TRACKING_SHEET_ID         = "1LJcJvdsy0zOIjzloYXcQHKb5n6EBv_4mWl8lB0iowp4"

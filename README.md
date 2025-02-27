@@ -35,7 +35,7 @@ The necessary packages are listed in the file: *requirements.txt*
 If you are installing OpenFarma Assistant on your personal computer (not deploying to Streamlit Cloud), do not install `pysqlite3-binary` from the requirements.txt file. This package is specifically required for cloud deployment and may conflict with your local SQLite installation.
 
 When installing locally, you can either:
-- Remove `pysqlite3-binary` from requirements.txt before running `pip install -r requirements.txt`
+- Remove or comment out `pysqlite3-binary` from requirements.txt before running `pip install -r requirements.txt`
 - Or selectively install packages excluding pysqlite3: `pip install -r requirements.txt --exclude pysqlite3-binary`
 
 ## Python Version Compatibility

@@ -518,4 +518,3 @@ class Thread:
             return {"status": run.status, "messages": messages}
         except Exception as e:
             raise Exception(f"Error in non-streaming run: {str(e)}")
-
