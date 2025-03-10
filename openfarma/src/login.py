@@ -158,7 +158,7 @@ class Login:
 
     def _renderLoginForm(self) -> None:
         """Render main login form."""
-        usernames = self.USERS_DF.iloc[:, 1].tolist()
+        usernames = sorted(self.USERS_DF.iloc[:, 1].tolist(), key=lambda x: x.lower())
         
         with st.form("login_form"):
             self._renderStyles()
@@ -194,7 +194,7 @@ class Login:
         """Render password recovery page."""
         with st.form("recovery_form"):
             st.write("### Recuperación de Contraseña")
-            usernames = self.USERS_DF.iloc[:, 1].tolist()
+            usernames = sorted(self.USERS_DF.iloc[:, 1].tolist(), key=lambda x: x.lower())
             username = st.selectbox("Seleccione su Usuario", usernames, key="recovery_username")
             
             left, right = st.columns(2)
