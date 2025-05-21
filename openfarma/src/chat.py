@@ -341,12 +341,13 @@ class Chat:
         else:
             return f'<div class="chat-message bot-message">{message}</div>'
 
-    def clearChat(self) -> None:
+    def clearChat(self, report: bool = True) -> None:
         """
         Clear all chat messages and reset the thread.
         Adds a welcome message after clearing.
         """
-        self.prompt_tracker.reportPrompts()  # Report prompts before clearing
+        if report:
+            self.prompt_tracker.reportPrompts()  # Report prompts before clearing
         self.messages = []
         self.thread = Thread(self.thread.api_key)
         self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
@@ -422,12 +423,12 @@ class Chat:
             # Process in thread
             with st.spinner(self.config.loading_text):
                 self.thread.runWithStreaming(self.assistant_id, handlers)
-            
+                #self.thread.runWithoutStreaming(self.assistant_id, handlers)
             # Get and add assistant response
             response = self.thread.retrieveLastMessage()
             content = response["content"][0].text.value
             self.addMessage(content, "assistant")
-
+            
             # Stream response if enabled
             if self.thread.force_stream:
                 self.streamResponse(content, role="assistant")
@@ -537,7 +538,7 @@ class Chat:
             message = MIMEMultipart()
             message['From'] = from_email
             message['To'] = to_email
-            message['Subject'] = f'Reporte de Conversación OpenFarma - {datetime.now().strftime("%Y-%m-%d %H:%M")}'
+            message['Subject'] = f'Dev:Reporte de Conversación OpenFarma - {datetime.now().strftime("%Y-%m-%d %H:%M")}'
 
             # Create email body
             body = f"""
@@ -576,6 +577,7 @@ class Chat:
                 <footer style="color: #666; font-size: 12px;">
                     <p>Este es un mensaje automático generado por OpenFarma AI Assistant.</p>
                     <p>Por favor no responda a este correo.</p>
+                    <p style="color: #ff0000;">Esta conversación fue enviada desde la versión beta del software.</p>
                 </footer>
             </body>
             </html>

@@ -1,4 +1,5 @@
-import json, time
+import time
+import json
 import openai
 import streamlit as st
 from typing_extensions import override
@@ -15,6 +16,9 @@ class EventHandler(AssistantEventHandler):
         tool_handlers: Dictionary mapping function names to their handler functions
         client: The OpenAI client
         thread_instance: Reference to the Thread instance
+        current_text: Current text being processed
+        container: Streamlit container for displaying text
+        is_first_message: Indicates if this is the first message
 
     Methods:
         on_event: Handles the event
@@ -26,6 +30,9 @@ class EventHandler(AssistantEventHandler):
         self.tool_handlers = tool_handlers
         self.client = client
         self.thread_instance = thread_instance
+        self.current_text = ""
+        self.container = None
+        self.is_first_message = True
 
     @override
     def on_event(self, event):
@@ -39,6 +46,21 @@ class EventHandler(AssistantEventHandler):
                 self.thread_instance.force_stream = False
             else:
                 self.thread_instance.force_stream = True
+        elif event.event == 'thread.message.delta':
+            if self.is_first_message:
+                left, _ = st.columns(BOT_CHAT_COLUMNS)
+                with left:
+                    with st.chat_message("assistant", avatar=AVATAR_BOT_PATH):
+                        self.container = st.empty()
+                        self.is_first_message = False
+            
+            if self.container:
+                self.current_text += event.data.delta.content[0].text.value
+                self.container.markdown(
+                    f'<div class="chat-message bot-message">{self.current_text}</div>',
+                    unsafe_allow_html=True
+                )
+                time.sleep(0.03)
     
     def handleRequiresAction(self, data, run_id):
         tool_outputs = []
@@ -64,16 +86,7 @@ class EventHandler(AssistantEventHandler):
             event_handler=EventHandler(self.tool_handlers, self.client, self.thread_instance)
         ) as stream:
             if self.thread_instance.requires_action_occurred and (not self.thread_instance.force_stream):
-                left, _ = st.columns(BOT_CHAT_COLUMNS)
-                with left:
-                    with st.chat_message("assistant", avatar=AVATAR_BOT_PATH):
-                        container = st.empty()
-                        current_text = ""
-                        for chunk in stream.text_deltas:
-                            current_text += chunk
-                            current_text_styled = f'<div class="chat-message bot-message">{current_text}</div>'
-                            container.write(current_text_styled, unsafe_allow_html=True)
-                            time.sleep(0.03)
+                stream.until_done()
 
 class Thread:
     """

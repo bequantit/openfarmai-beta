@@ -21,3 +21,4 @@ google-auth-oauthlib
 openpyxl
 fpdf
 pysqlite3-binary
+requests

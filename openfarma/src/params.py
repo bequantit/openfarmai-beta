@@ -7,9 +7,11 @@ ROOT = os.getcwd()
 # paths
 ## csv
 LOGIN_PATH              = os.path.join(ROOT, "openfarma/database/login.csv")            # login database path
-STOCK_PATH              = os.path.join(ROOT, "openfarma/database/stock.csv")            # stock database path
-PRODUCTS_PATH           = os.path.join(ROOT, "openfarma/database/openfarma.csv")        # csv database path
+IMAGES_PATH             = os.path.join(ROOT, "openfarma/database/imagenes.csv")         # images database path
+ABM_PATH                = os.path.join(ROOT, "openfarma/database/abm.csv")              # abm database path
 STORES_PATH             = os.path.join(ROOT, "openfarma/database/sucursales.csv")       # stores database path
+STOCK_PATH              = os.path.join(ROOT, "openfarma/database/stock.csv")            # stock database path
+
 STOCK_BOT_10_PATH       = os.path.join(ROOT, "openfarma/database/stock/bot_10.csv")     # stock from id=10 store
 STOCK_BOT_11_PATH       = os.path.join(ROOT, "openfarma/database/stock/bot_11.csv")     # stock from id=11 store
 STOCK_BOT_12_PATH       = os.path.join(ROOT, "openfarma/database/stock/bot_12.csv")     # stock from id=12 store
@@ -44,7 +46,13 @@ AVATAR_BOT_PATH         = os.path.join(ROOT, "openfarma/images/avatar_bot.png")
 HEADER_LOGO_PATH        = os.path.join(ROOT, "openfarma/images/header_logo.png")
 
 ## run
-RUN_STOCK_PATH          = os.path.join(ROOT, "openfarma/run/pull-stock.py")
+PULL_STOCK_PATH          = os.path.join(ROOT, "openfarma/run/pull-stock.py")
+PULL_IMAGES_PATH         = os.path.join(ROOT, "openfarma/run/pull-images.py")
+PULL_ABM_PATH            = os.path.join(ROOT, "openfarma/run/pull-abm.py")
+PUSH_ABM_PATH            = os.path.join(ROOT, "openfarma/run/push-abm.py")
+PUSH_IMAGES_PATH         = os.path.join(ROOT, "openfarma/run/push-images.py")
+PUSH_STOCK_PATH          = os.path.join(ROOT, "openfarma/run/push-stock.py")
+BUILD_ABM_DB_PATH        = os.path.join(ROOT, "openfarma/run/build-abm-db.py")
 
 # constants
 K_VALUE_SEARCH          = 30            # K value for the search
@@ -54,14 +62,9 @@ USER_CHAT_COLUMNS       = [0.5, 0.5]    # percentage of the column for the user 
 BOT_CHAT_COLUMNS        = [0.8, 0.2]    # percentage of the column for the bot chat
 
 # google sheets
-## San Fernando sheet
-#SPREADSHEET_ID = "1ulAoStGq7pI5pTSA1H1WKVGcf5vjVhf_CUPsJHBKuNM"
-#SPREADSHEET_LINK = "https://docs.google.com/spreadsheets/d/1ulAoStGq7pI5pTSA1H1WKVGcf5vjVhf_CUPsJHBKuNM/edit?gid=1840576660#gid=1840576660"
+SPREADSHEET_ID_IMAGES = "19CfuLw6dui_-pIUyq3g7_tNAUvRk7kbCjQ76jINPR0k"
+SPREADSHEET_ID_ABM    = "1DwQq2jyXkdEWOt76lLKb4LMdIiGX1RYoyhWE1gGPVOc"
 
-## Test sheet
-SPREADSHEET_ID = "1zcIYQHyuHXT3u_92zlCsZnJ8XJKJLcpgKPa_dpTOstY"
-
-# google sheets
 SPREADSHEET_ID_BOT_10 = "1XNYgjTiVW85A_pFFMMFtC8fkNlzO44C8_0bMBxgv-g0"
 SPREADSHEET_ID_BOT_11 = "1r8ah5Fb4m_ca_FzynF9x86oOstZa2GNd6MwA87rffn4"
 SPREADSHEET_ID_BOT_12 = "1Kq2r77h1GI-E6wPTwxWGhzewxdY9aE3Xdil6-Q2lSIg"

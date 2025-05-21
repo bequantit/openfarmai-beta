@@ -47,6 +47,8 @@ except ImportError as e:
 api_key = st.secrets["OPENFARMA_API_KEY"]
 assistant_id = st.secrets["OPENFARMA_ASSISTANT_ID"]
 
+# ------------------ Main ------------------
+
 def main():
     # Initialize authentication state
     if 'authenticated' not in st.session_state:
@@ -71,7 +73,7 @@ def main():
                 env = os.environ.copy()
                 env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
-                    [sys.executable, RUN_STOCK_PATH, st.session_state.store_id],
+                    [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
                     check=True,
                     env=env
                 )
@@ -79,6 +81,36 @@ def main():
             except subprocess.CalledProcessError as e:
                 st.error(f"Error al ejecutar el script de stock: {str(e)}")
                 st.session_state.is_stock = False
+        
+        # Get images data just once 
+        if "is_images" not in st.session_state:
+            try:
+                env = os.environ.copy()
+                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                subprocess.run(
+                    [sys.executable, PULL_IMAGES_PATH, st.session_state.store_id],
+                    check=True,
+                    env=env
+                )
+                st.session_state.is_images = True
+            except subprocess.CalledProcessError as e:
+                st.error(f"Error al ejecutar el script de imágenes: {str(e)}")
+                st.session_state.is_images = False
+
+        # Get ABM data just once
+        if "is_abm" not in st.session_state:
+            try:
+                env = os.environ.copy()
+                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                subprocess.run(
+                    [sys.executable, PULL_ABM_PATH, st.session_state.store_id],
+                    check=True,
+                    env=env
+                )
+                st.session_state.is_abm = True
+            except subprocess.CalledProcessError as e:
+                st.error(f"Error al ejecutar el script de ABM: {str(e)}")
+                st.session_state.is_abm = False
         
         # Initialize stock update timer
         if "last_stock_update" not in st.session_state:
@@ -90,7 +122,7 @@ def main():
                 env = os.environ.copy()
                 env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
-                    [sys.executable, RUN_STOCK_PATH, st.session_state.store_id],
+                    [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
                     check=True,
                     env=env
                 )

@@ -1,3 +1,5 @@
+# ------------------ Imports ------------------
+
 from __future__ import annotations
 import io
 import base64
@@ -6,7 +8,6 @@ import pandas as pd
 import streamlit as st
 from PIL import Image
 from typing import Optional, Tuple, List
-from datetime import datetime
 from hashlib import sha256
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -17,6 +18,241 @@ from openfarma.src.params import (
     EMAIL_FROM,
     EMAIL_PASSWORD
 )
+
+# ------------------ Login No password Class ------------------
+
+class LoginNoPassword:
+    """
+    Class to handle login functionality without password requirements.
+    Only username selection is needed for authentication.
+
+    Attributes:
+        HEADER_IMAGE (str): Base64 encoded header image
+        USERS_DF (pd.DataFrame): DataFrame containing user information
+        STORES_DF (pd.DataFrame): DataFrame containing store information
+    """
+    
+    HEADER_IMAGE: Optional[str] = None
+    USERS_DF: Optional[pd.DataFrame] = None
+    STORES_DF: Optional[pd.DataFrame] = None
+    
+    def __init__(self) -> None:
+        """Initialize login instance and load necessary data."""
+        self._loadStaticData()
+        self._initializeSessionState()
+
+    @staticmethod
+    def _encodeImage(image_path: str) -> str:
+        """
+        Encode image to base64.
+        
+        Args:
+            image_path: Path to the image file
+            
+        Returns:
+            Base64 encoded image string
+        """
+        try:
+            with Image.open(image_path) as image:
+                buffered = io.BytesIO()
+                image.save(buffered, format="PNG")
+                return base64.b64encode(buffered.getvalue()).decode()
+        except Exception as e:
+            st.error(f"Error encoding image: {str(e)}")
+            raise
+
+    def _getUserData(self, username: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Get user information from database.
+        
+        Args:
+            username: Username to look up
+            
+        Returns:
+            Tuple containing (username, email) or (None, None) if not found
+        """
+        try:
+            user_data = self.USERS_DF[self.USERS_DF.iloc[:, 1] == username]
+            if not user_data.empty:
+                return (
+                    username,
+                    str(user_data.iloc[0, 3])
+                )
+            return None, None
+        except Exception as e:
+            st.error(f"Error retrieving user data: {str(e)}")
+            return None, None
+
+    def _getStoreData(self, store_id: str) -> List[str]:
+        """
+        Retrieve store data from the stores database.
+        
+        Args:
+            store_id: Store identifier
+            
+        Returns:
+            List containing store details (name, address, location)
+        """
+        try:
+            store_id = str(int(float(store_id)))
+            store_data = self.STORES_DF[
+                self.STORES_DF.iloc[:, 0] == store_id
+            ].iloc[0, 1:].tolist()
+            return store_data
+        except Exception as e:
+            st.error(f"Error retrieving store data: {str(e)}")
+            raise
+
+    def _initializeSessionState(self) -> None:
+        """Initialize session state variables with default values."""
+        session_vars = {
+            'authenticated': False,
+            'store_id': None,
+            'store_name': None,
+            'store_address': None,
+            'store_location': None,
+            'username': None
+        }
+        
+        for var, default in session_vars.items():
+            if var not in st.session_state:
+                st.session_state[var] = default
+
+    @classmethod
+    def _loadStaticData(cls) -> None:
+        """Load static data that will be shared across all instances."""
+        try:
+            if cls.HEADER_IMAGE is None:
+                cls.HEADER_IMAGE = cls._encodeImage(HEADER_LOGO_PATH)
+            if cls.USERS_DF is None:
+                cls.USERS_DF = pd.read_csv(LOGIN_PATH)
+            if cls.STORES_DF is None:
+                cls._prepareStoresDf()
+        except Exception as e:
+            st.error(f"Error loading static data: {str(e)}")
+            raise
+
+    @classmethod
+    def _prepareStoresDf(cls) -> None:
+        """Prepare stores dataframe by cleaning and formatting data."""
+        try:
+            df = pd.read_csv(STORES_PATH)
+            df = df.dropna(subset=[df.columns[0]])
+            mask = df.iloc[:, 0].astype(str).str.strip() != ''
+            df = df[mask].copy()
+            df.iloc[:, 0] = pd.to_numeric(df.iloc[:, 0], errors='coerce').fillna(0).astype(int).astype(str)
+            cls.STORES_DF = df
+        except Exception as e:
+            st.error(f"Error preparing stores DataFrame: {str(e)}")
+            raise
+
+    def _renderHeader(self) -> None:
+        """Render page header with logo."""
+        st.markdown(
+            f"""
+            <img src="data:image/png;base64,{self.HEADER_IMAGE}" 
+                 style="width: 350px; display: block; margin: 0 auto;">
+            <br><br>
+            """, 
+            unsafe_allow_html=True
+        )
+
+    def _renderLoginForm(self) -> None:
+        """Render main login form."""
+        usernames = sorted(self.USERS_DF.iloc[:, 1].tolist(), key=lambda x: x.lower())
+        
+        with st.form("login_form"):
+            self._renderStyles()
+            
+            # Username field takes full width
+            username = st.selectbox("Usuario", usernames, key="username_input")
+            
+            # Create three columns for centering the button
+            left, center, right = st.columns([1, 0.5, 1])
+            with center:
+                submit_button = st.form_submit_button("Iniciar sesión")
+                if submit_button:
+                    if self._verifyUser(username):
+                        st.rerun()
+                    else:
+                        st.error("Usuario no encontrado")
+
+    @staticmethod
+    def _renderStyles() -> None:
+        """Render CSS styles for the login page."""
+        st.markdown("""
+            <style>
+            div[data-testid="stSelectbox"] {
+                font-size: 16px !important;
+                font-family: 'Arial', sans-serif !important;
+            }
+
+            div[data-testid="stSelectbox"] > div[role="button"] {
+                padding: 10px !important;
+                border-radius: 5px !important;
+            }
+
+            div[data-testid="stSelectbox"] label p {
+                font-size: 20px !important;
+                color: black !important;
+                font-weight: bold !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+    def _setSessionData(self, store_id: str, store_data: List[str], username: str) -> None:
+        """
+        Set session state data after successful authentication.
+        
+        Args:
+            store_id: Store identifier
+            store_data: List of store details
+            username: Authenticated username
+        """
+        try:
+            st.session_state.update({
+                'store_id': store_id,
+                'store_name': store_data[0],
+                'store_address': store_data[1],
+                'store_location': store_data[2],
+                'authenticated': True,
+                'username': username
+            })
+        except Exception as e:
+            st.error(f"Error setting session data: {str(e)}")
+            raise
+
+    def _verifyUser(self, username: str) -> bool:
+        """
+        Verify user exists and set session state if valid.
+        
+        Args:
+            username: Username to verify
+            
+        Returns:
+            Boolean indicating if user is valid
+        """
+        try:
+            user_data = self.USERS_DF[self.USERS_DF.iloc[:, 1] == username]
+            
+            if not user_data.empty:
+                store_id = str(int(float(user_data.iloc[0, 0])))
+                store_data = self._getStoreData(store_id)
+                self._setSessionData(store_id, store_data, username)
+                return True
+            
+            return False
+        except Exception as e:
+            st.error(f"Error verifying user: {str(e)}")
+            return False
+
+    def render(self) -> None:
+        """Main method to render the login page."""
+        self._renderHeader()
+        self._renderLoginForm()
+
+
+# ------------------ Login with password Class ------------------
 
 class Login:
     """
@@ -379,5 +615,5 @@ class Login:
 
 def loginPage() -> None:
     """Legacy function to maintain backwards compatibility."""
-    login = Login()
+    login = LoginNoPassword()
     login.render()

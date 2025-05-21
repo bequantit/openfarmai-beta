@@ -5,131 +5,26 @@ from langchain_openai import OpenAIEmbeddings
 from .params import *
 
 api_key = st.secrets["OPENFARMA_API_KEY"]
+embedding = OpenAIEmbeddings(api_key=api_key)
 
 # Loading the vectordatabase
-embedding = OpenAIEmbeddings(api_key=api_key)
-database = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embedding)
+DB_ALL_PATH = os.path.join(CHROMA_DB_PATH, "db_all")
+DB_BENEFICIOS_PATH = os.path.join(CHROMA_DB_PATH, "db_Beneficios")
+DB_CATEGORIA_PATH = os.path.join(CHROMA_DB_PATH, "db_Categoria")
+DB_GENERALES_PATH = os.path.join(CHROMA_DB_PATH, "db_General")
+DB_INDICACIONES_PATH = os.path.join(CHROMA_DB_PATH, "db_Indicaciones")
+DB_USO_PATH = os.path.join(CHROMA_DB_PATH, "db_Modo de uso")
+DB_PROPIEDADES_PATH = os.path.join(CHROMA_DB_PATH, "db_Propiedades")
 
-# Extra functions they will be used in the functions calling
-def checkStock(file_path: str, ids_to_check: list) -> dict:
-    """
-    Check if the stock is greater than zero for the ids in the list.
-
-    Args:
-        file_path (str): Path to the file.
-        ids_to_check (list): List of ids to check.
-
-    Raises:
-        Exception: If there's an error checking the stock.
-
-    Returns:
-        dict: Dictionary with the ids as keys and the stocks as values.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        ids = df.iloc[:, 1].tolist()
-        stocks = df.iloc[:, 2].tolist()
-        # check the ids_to_check in the ids list and return the stocks for the ids in the list
-        return {ids[i]: stocks[i] > 0 for i in range(len(ids)) if ids[i] in ids_to_check}
-    except Exception as e:
-        raise Exception(f"Error checking stock: {e}")
-    
-def filter(file_path: str, ids_to_check: list, column_id: int, keyword: str, flag: bool = False) -> list:
-    """
-    Filter the dataframe by the ids in the list, the keyword in the column and the flag.
-
-    Args:
-        file_path (str): Path to the file.
-        ids_to_check (list): List of ids to check.
-        column_id (int): Column id to filter.
-        keyword (str): Keyword to filter.
-        flag (bool, optional): If True, filter the opposite of the keyword.
-
-    Returns:
-        list: List of ids.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        # Filter the dataframe by the ids in the list
-        df.iloc[:, 1] = df.iloc[:, 1].astype(str)
-        df = df[df.iloc[:, 1].isin(ids_to_check)]
-        # Filter the dataframe by the keyword in the column
-        df.iloc[:, column_id] = df.iloc[:, column_id].str.lower()
-        if flag:
-            df = df[~df.iloc[:, column_id].str.contains(keyword, case=False, na=False)]
-        else:
-            df = df[df.iloc[:, column_id].str.contains(keyword, case=False, na=False)]
+db_all = Chroma(persist_directory=DB_ALL_PATH, embedding_function=embedding)
+db_beneficios = Chroma(persist_directory=DB_BENEFICIOS_PATH, embedding_function=embedding)
+db_categoria = Chroma(persist_directory=DB_CATEGORIA_PATH, embedding_function=embedding)
+db_general = Chroma(persist_directory=DB_GENERALES_PATH, embedding_function=embedding)
+db_indicaciones = Chroma(persist_directory=DB_INDICACIONES_PATH, embedding_function=embedding)
+db_uso = Chroma(persist_directory=DB_USO_PATH, embedding_function=embedding)
+db_propiedades = Chroma(persist_directory=DB_PROPIEDADES_PATH, embedding_function=embedding)
         
-        return df.iloc[:, 1].tolist()
-    except Exception as e:
-        raise Exception(f"Error filtering: {e}")
 
-def getStock(file_path: str, ids_to_check: list) -> dict:
-    """
-    Get the stock for the ids in the list.
-
-    Args:
-        file_path (str): Path to the file.
-        ids_to_check (list): List of ids to check.
-
-    Raises:
-        Exception: If there's an error getting the stock.
-
-    Returns:
-        dict: Dictionary with the ids as keys and the stocks as values.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        ids = df.iloc[:, 1].tolist()
-        stocks = df.iloc[:, 2].tolist()
-        return {ids[i]: stocks[i] for i in range(len(ids)) if ids[i] in ids_to_check}
-    except Exception as e:
-        raise Exception(f"Error getting stock: {e}")
-    
-def getPrice(file_path: str, ids_to_check: list) -> dict:
-    """
-    Get the price for the ids in the list.
-
-    Args:
-        file_path (str): Path to the file.
-        ids_to_check (list): List of ids to check.
-
-    Raises:
-        Exception: If there's an error getting the price.
-
-    Returns:
-        dict: Dictionary with the ids as keys and the prices as values.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        ids = df.iloc[:, 1].tolist()
-        prices = df.iloc[:, 3].tolist()
-        return {ids[i]: prices[i] for i in range(len(ids)) if ids[i] in ids_to_check}
-    except Exception as e:
-        raise Exception(f"Error getting price: {e}")
-    
-def getSale(file_path: str, ids_to_check: list) -> dict:
-    """
-    Get the sale for the ids in the list.
-
-    Args:
-        file_path (str): Path to the file.
-        ids_to_check (list): List of ids to check.
-
-    Raises:
-        Exception: If there's an error getting the sale.
-
-    Returns:
-        dict: Dictionary with the ids as keys and the sales as values.
-    """
-    try:
-        df = pd.read_csv(file_path)
-        ids = df.iloc[:, 1].tolist()
-        sales = df.iloc[:, 4].tolist()
-        return {ids[i]: sales[i] for i in range(len(ids)) if ids[i] in ids_to_check}
-    except Exception as e:
-        raise Exception(f"Error getting sale: {e}")
-    
 def getData(file_path: str, ids_to_check: list, null_stock: bool = False) -> dict:
     """
     Get the data for the ids in the list.
@@ -159,29 +54,149 @@ def getData(file_path: str, ids_to_check: list, null_stock: bool = False) -> dic
         return data
     except Exception as e:
         raise Exception(f"Error getting data: {e}")
-    
-def searchInDatabase(ids: list, k: int=5) -> dict:
+
+def retrieveVectorDB(database: Chroma, context: str, k: int=10) -> list:
     """
-    Search and get the data from the database based on the ids.
+    Retrieve the ids and their associated text content from the vector database based on similarity to the input context.
 
     Args:
-        ids (list): List of ids to search.
-        k (int, optional): Number of results to return.
+        database (Chroma): The Chroma vector database to search in
+        context (str): The search query text to find similar entries for
+        k (int, optional): Maximum number of results to return. Defaults to 10.
 
     Returns:
-        dict: Dictionary with the ids as keys and the data as values.
-    """
-    try:
-        df = pd.read_csv(PRODUCTS_PATH)
-        df = df[df.iloc[:, 0].isin(ids)]
-        data = {}
-        if not df.empty:
-            for _, row in df.iterrows():
-                data[row.iloc[0]] = row.iloc[2]
-        return data
-    except Exception as e:
-        raise Exception(f"Error searching in database: {e}")
+        dict: Dictionary mapping EAN IDs to their associated text content, for the k most similar entries
 
+    Raises:
+        Exception: If there's an error retrieving from the vector database
+    """
+    retrieve_dict = {}
+    try:
+        retrived_from_vdb = database.similarity_search_with_score(context, k=k)
+        N = len(retrived_from_vdb)
+        for i in range(N):
+            id = str(retrived_from_vdb[i][0].metadata['EAN']).strip()
+            text = retrived_from_vdb[i][0].page_content
+            retrieve_dict[id] = text
+        return retrieve_dict
+    except Exception as e:
+        raise Exception(f"Error retrieving vector database: {e}")
+    
+def retrieveImages(ids: list, file_path: str) -> dict:
+    """
+    Retrieve the images for the ids in the list.
+    """
+    images_by_id = {}
+    ids = [str(id).strip() for id in ids]
+    df_images = pd.read_csv(file_path, sep=',', encoding='utf-8')
+    df_images = df_images.astype(str).apply(lambda x: x.str.strip())
+    
+    for id in ids:
+        match_sku = df_images[df_images['SKU'] == id]
+        match_ean = df_images[df_images['EAN'] == id]
+        
+        # Skip if multiple matches in either SKU or EAN
+        if len(match_sku) > 1 or len(match_ean) > 1:
+            continue
+            
+        # Skip if matches in both SKU and EAN but from different rows
+        if not match_sku.empty and not match_ean.empty:
+            if not match_sku.index.equals(match_ean.index):
+                continue
+            else:
+                images_by_id[id] = match_sku.iloc[0]['IMAGEN']
+        elif not match_sku.empty:
+            images_by_id[id] = match_sku.iloc[0]['IMAGEN']
+        elif not match_ean.empty:
+            images_by_id[id] = match_ean.iloc[0]['IMAGEN']
+    
+    return images_by_id
+
+def retrieveSaleData(ids: list, file_path: str, null_stock: bool = False) -> dict:
+    """
+    Retrieve the sale data for the ids in the list.
+    """
+    sale_data = {}
+    ids = [str(id).strip() for id in ids]
+    df_sale = pd.read_csv(file_path, sep=',', encoding='utf-8')
+    df_sale = df_sale.astype(str).apply(lambda x: x.str.strip())
+
+    for id in ids:
+        match_ean = df_sale[df_sale['ean'] == id]
+        if len(match_ean) > 1:
+            continue
+        elif not match_ean.empty:
+            if not null_stock:
+                if match_ean.iloc[0]['stock'] != '0':
+                    sale_data[id] = [
+                        match_ean.iloc[0]['stock'],
+                        match_ean.iloc[0]['precio'],
+                        match_ean.iloc[0]['promo']
+                    ]
+            else:
+                sale_data[id] = [
+                    match_ean.iloc[0]['stock'],
+                    match_ean.iloc[0]['precio'],
+                    match_ean.iloc[0]['promo']
+                ]
+        else:
+            continue
+    return sale_data
+
+def buildProductContext(ids: list, product_data: dict, null_stock: bool = False, 
+                        force_sale: bool = False, include_images: bool = True, 
+                        default_message: str = "No se encontraron productos que cumplan \
+                            con los criterios de búsqueda.") -> str:
+    """
+    Build context string for products based on provided data and filters.
+    
+    Args:
+        ids (list): List of product IDs
+        product_data (dict): Product data from vector DB
+        null_stock (bool): Whether to include products with 0 stock
+        force_sale (bool): Whether to only include products on sale
+        include_images (bool): Whether to include product images
+        
+    Returns:
+        str: Formatted context string with product details
+    """
+    sale_data = retrieveSaleData(ids, STOCK_PATH, null_stock=null_stock)
+    url_data = retrieveImages(ids, IMAGES_PATH) if include_images else {}
+    
+    if len(sale_data) > 0:
+        productos = []
+        for id in sale_data.keys():
+            stock, price, sale = sale_data[id]
+            
+            # Skip if force_sale is True and product not on sale
+            if force_sale and sale.lower() == 'no promo':
+                continue
+                
+            product = product_data[id]
+            description = f"{product}\n"
+            description += f"Stock: {stock}. Precio: ${price}. Promoción: {sale}\n"
+            
+            if include_images:
+                url = url_data.get(id, "")
+                if url:
+                    description += f"URL: https://{url}\n"
+            
+            productos.append(description)
+
+            if len(productos) >= K_VALUE_THOLD:
+                break
+
+        if productos:
+            context = """Los productos encontrados son:\n\n"""
+            for p in productos:
+                context += f"{p}\n"
+            return context
+            
+        return default_message
+    
+    return "No se encontraron productos disponibles."
+        
+        
 
 # ----------------- #
 # FUNCTIONS CALLING #
@@ -189,45 +204,144 @@ def searchInDatabase(ids: list, k: int=5) -> dict:
 
 def buscar_productos(**kwargs):
     problem = kwargs['problem']
-    retrived_from_vdb = database.similarity_search_with_score(problem, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
+    product_data = retrieveVectorDB(db_general, problem, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos que cumplan con la consulta sobre: {problem}."
     
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos para la consulta sobre: {problem}."
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
     
-    return f"Contexto: {context}"
+def buscar_productos_por_presentacion(**kwargs):
+    presentation = kwargs['presentacion']
+    product_data = retrieveVectorDB(db_general, presentation, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con la presentación: {presentation}."
+
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+
+def buscar_productos_por_beneficios(**kwargs):
+    benefits = kwargs['beneficio']
+    product_data = retrieveVectorDB(db_beneficios, benefits, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con los beneficios: {benefits}."
+
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+
+def buscar_productos_por_categoria(**kwargs):
+    category = kwargs['categoria']
+    product_data = retrieveVectorDB(db_categoria, category, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos en la categoría: {category}."
+    
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+    
+def buscar_productos_por_indicaciones(**kwargs):
+    indications = kwargs['indicacion']
+    product_data = retrieveVectorDB(db_indicaciones, indications, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con las indicaciones: {indications}."
+    
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+    
+def buscar_productos_por_modo_uso(**kwargs):
+    mode_of_use = kwargs['uso']
+    product_data = retrieveVectorDB(db_uso, mode_of_use, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con el modo de uso: {mode_of_use}."
+    
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+
+def buscar_productos_por_propiedades(**kwargs):
+    properties = kwargs['propiedad']
+    product_data = retrieveVectorDB(db_propiedades, properties, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con las propiedades: {properties}."
+
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
+    
+def buscar_productos_por_problema_y_promocion(**kwargs):
+    problem = kwargs['problematica']
+    product_data = retrieveVectorDB(db_all, problem, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos en promoción para la consulta sobre: {problem}."
+    
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=True,
+        include_images=True,
+        default_message=default_message
+    )
+
+def buscar_productos_por_presentacion_y_tamano(**kwargs):
+    presentation = f"{kwargs['presentacion']} {kwargs['valor']}{kwargs['unidad']}"
+    product_data = retrieveVectorDB(db_general, presentation, k=K_VALUE_SEARCH)
+    ids = list(product_data.keys())
+    default_message = f"No se encontraron productos con la presentación: {presentation}."
+    
+    return buildProductContext(
+        ids=ids,
+        product_data=product_data,
+        null_stock=False,
+        force_sale=False,
+        include_images=True,
+        default_message=default_message
+    )
 
 def contar_marcas():
-    df = pd.read_csv(PRODUCTS_PATH)
-    brands = df.iloc[:, 1].apply(lambda x: x.lower()).tolist()
-    brands = list(set(brands))
+    df = pd.read_csv(ABM_PATH, usecols=['Marca'])
+    brands = df['Marca'].str.lower().tolist()
+    brands = set(brands)
     return f"Hay {len(brands)} marcas en total."
-
-def listar_marcas():
-    df = pd.read_csv(PRODUCTS_PATH)
-    brands = df.iloc[:, 1].apply(lambda x: x.lower()).tolist()
-    brands = list(set(brands))
-    brands = [brand.capitalize() for brand in brands]
-    return f"Las marcas son: {', '.join(brands)}."
-
-def verificar_marca(**kwargs):
-    brand_to_check = kwargs['marca'].lower()
-    df = pd.read_csv(PRODUCTS_PATH)
-    brands = df.iloc[:, 1].apply(lambda x: x.lower()).tolist()
-    brands = list(set(brands))
-    result = brand_to_check in brands
-    return f"La marca {brand_to_check.capitalize()} {'sí' if result else 'no'} está en la base de datos."
 
 def contar_productos_con_stock():
     try:
@@ -246,96 +360,17 @@ def contar_productos_en_promocion():
     except Exception as e:
         raise Exception(f"Error counting products in promotion: {e}")
 
-def buscar_productos_por_precio(**kwargs):
-    price_min = float(str(kwargs['precio_min']))
-    price_max = float(str(kwargs['precio_max']))
-    try:
-        # Get ids of the products in the range of prices
-        df = pd.read_csv(STOCK_PATH)
-        df = df[(df.iloc[:, 3] >= price_min) & (df.iloc[:, 3] <= price_max)]
-        ids = df.iloc[:, 1].tolist()
-        prices = df.iloc[:, 3].tolist()
-        # Look for the ids in the database
-        data = searchInDatabase(ids, k=K_VALUE_THOLD)
-        # Join data with prices for ids in common
-        if len(data) > 0:
-            context = []
-            for id, data in data.items():
-                context.append(f"{data} {prices[ids.index(id)]}")
-            context = '\n'.join(context)
-        else:
-            context = f"No se encontraron productos en el rango de precios entre {price_min} y {price_max}."
-        return f"Contexto: {context}"
-    except Exception as e:
-        raise Exception(f"Error searching products by price: {e}")
-    
-def buscar_productos_por_zona_aplicacion(**kwargs):
-    zone = kwargs['zona_aplicacion']
-    retrived_from_vdb = database.similarity_search_with_score(zone, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
-    
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos para aplicar en: {zone}."
-    
-    return f"Contexto: {context}"
-
-def buscar_productos_por_ingrediente(**kwargs):
-    ingredient = kwargs['ingrediente']
-    retrived_from_vdb = database.similarity_search_with_score(ingredient, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
-
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos con el ingrediente: {ingredient}."
-    
-    return f"Contexto: {context}"
-
-def buscar_productos_por_presentacion(**kwargs):
-    presentation = kwargs['presentacion']
-    retrived_from_vdb = database.similarity_search_with_score(presentation, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
-
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos con la presentación: {presentation}."
-    
-    return f"Contexto: {context}"
+def listar_marcas():
+    df = pd.read_csv(ABM_PATH, usecols=['Marca'])
+    brands = df['Marca'].str.lower().tolist()
+    brands = set(brands)
+    brands = [brand.capitalize() for brand in brands]
+    return f"Las marcas son: {', '.join(brands)}."
 
 def listar_productos_en_categorias(**kwargs):
     category = kwargs['categoria']
-    retrived_from_vdb = database.similarity_search_with_score(category, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
+    retrived_from_vdb = retrieveVectorDB(db_categoria, category, k=K_VALUE_SEARCH)
+    ids = list(retrived_from_vdb.keys())
     stock_data = getData(STOCK_PATH, ids, null_stock=True)
 
     if len(stock_data) > 0:
@@ -353,87 +388,28 @@ def listar_productos_en_categorias(**kwargs):
     
     return f"Contexto: {context}"
 
-def buscar_productos_por_problema_y_promocion(**kwargs):
-    problem = kwargs['problematica']
-    retrived_from_vdb = database.similarity_search_with_score(problem, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    ids = filter(STOCK_PATH, ids, 4, 'no promo', flag=True)
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
-    
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos en promoción para la consulta sobre: {problem}."
-    
-    return f"Contexto: {context}"
-
-def buscar_productos_por_presentacion_y_tamano(**kwargs):
-    presentation = f"{kwargs['presentacion']} {kwargs['valor']}{kwargs['unidad']}"
-    retrived_from_vdb = database.similarity_search_with_score(presentation, k=K_VALUE_SEARCH)
-    ids = [retrived_from_vdb[i][0].metadata['EAN'] for i in range(K_VALUE_SEARCH)]
-    stock_data = getData(STOCK_PATH, ids, null_stock=True)
-
-    if len(stock_data) > 0:
-        i = 0
-        context = []
-        for id, data in stock_data.items():
-            index = ids.index(id)
-            context.append(f"{retrived_from_vdb[index][0].page_content} {data}")
-            i += 1
-            if i >= K_VALUE_THOLD:
-                break
-        context = '\n'.join(context)
-    else:
-        context = f"No se encontraron productos con la presentación: {presentation}."
-    
-    return f"Contexto: {context}"
-
-def listar_productos_por_rango_precio_y_promocion(**kwargs):
-    price_min = float(str(kwargs['precio_min']))
-    price_max = float(str(kwargs['precio_max']))
-    try:
-        # Get ids of the products in the range of prices
-        df = pd.read_csv(STOCK_PATH)
-        df.iloc[:, 4] = df.iloc[:, 4].apply(lambda x: x.lower())
-        df = df[df.iloc[:, 4] != 'no promo']
-        df = df[(df.iloc[:, 3] >= price_min) & (df.iloc[:, 3] <= price_max)]
-        ids = df.iloc[:, 1].tolist()
-        prices = df.iloc[:, 3].tolist()
-        # Look for the ids in the database
-        data = searchInDatabase(ids, k=K_VALUE_THOLD)
-        # Join data with prices for ids in common
-        if len(data) > 0:
-            context = []
-            for id, data in data.items():
-                context.append(f"{data} {prices[ids.index(id)]}")
-            context = '\n'.join(context)
-        else:
-            context = f"No se encontraron productos en promoción en el rango de precios entre {price_min} y {price_max}."
-        return f"Contexto: {context}"
-    except Exception as e:
-        raise Exception(f"Error searching products by price: {e}")
+def verificar_marca(**kwargs):
+    brand_to_check = kwargs['marca'].lower()
+    df = pd.read_csv(ABM_PATH, usecols=['Marca'])
+    brands = df['Marca'].str.lower().tolist()
+    brands = set(brands)
+    result = brand_to_check in brands
+    return f"La marca {brand_to_check.capitalize()} {'sí' if result else 'no'} está en la base de datos."
 
 handlers = {
     "buscar_productos": buscar_productos,
-    "contar_marcas": contar_marcas,
-    "listar_marcas": listar_marcas,
-    "verificar_marca": verificar_marca,
-    "contar_productos_con_stock": contar_productos_con_stock,
-    "contar_productos_en_promocion": contar_productos_en_promocion,
-    "buscar_productos_por_precio": buscar_productos_por_precio,
-    "buscar_productos_por_zona_aplicacion": buscar_productos_por_zona_aplicacion,
-    "buscar_productos_por_ingrediente": buscar_productos_por_ingrediente,
     "buscar_productos_por_presentacion": buscar_productos_por_presentacion,
-    "listar_productos_en_categorias": listar_productos_en_categorias,
+    "buscar_productos_por_beneficios": buscar_productos_por_beneficios,
+    "buscar_productos_por_categoria": buscar_productos_por_categoria,
+    "buscar_productos_por_indicaciones": buscar_productos_por_indicaciones,
+    "buscar_productos_por_modo_uso": buscar_productos_por_modo_uso,
+    "buscar_productos_por_propiedades": buscar_productos_por_propiedades,
     "buscar_productos_por_problema_y_promocion": buscar_productos_por_problema_y_promocion,
     "buscar_productos_por_presentacion_y_tamano": buscar_productos_por_presentacion_y_tamano,
-    "listar_productos_por_rango_precio_y_promocion": listar_productos_por_rango_precio_y_promocion
+    "contar_marcas": contar_marcas,
+    "contar_productos_con_stock": contar_productos_con_stock,
+    "contar_productos_en_promocion": contar_productos_en_promocion,
+    "listar_marcas": listar_marcas,
+    "listar_productos_en_categorias": listar_productos_en_categorias,
+    "verificar_marca": verificar_marca
 }
