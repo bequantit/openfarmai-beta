@@ -162,8 +162,6 @@ class Chat:
         assistant_id (str): OpenAI assistant ID
         is_processing (bool): Flag indicating if a message is being processed
         prompts_queue (List[str]): Queue of user prompts to process
-        requires_action (bool): Flag for required user actions
-        force_stream (bool): Flag to force response streaming
         prompt_tracker (PromptTracker): Prompt tracker for message tracking
     
     Example:
@@ -208,8 +206,6 @@ class Chat:
         self.assistant_id = assistant_id
         self.is_processing = False
         self.prompts_queue: List[str] = []
-        self.requires_action = False
-        self.force_stream = False
         self.prompt_tracker = PromptTracker()
         
         # Initialize with welcome message
@@ -423,15 +419,11 @@ class Chat:
             # Process in thread
             with st.spinner(self.config.loading_text):
                 self.thread.runWithStreaming(self.assistant_id, handlers)
-                #self.thread.runWithoutStreaming(self.assistant_id, handlers)
+
             # Get and add assistant response
             response = self.thread.retrieveLastMessage()
             content = response["content"][0].text.value
             self.addMessage(content, "assistant")
-            
-            # Stream response if enabled
-            if self.thread.force_stream:
-                self.streamResponse(content, role="assistant")
             
             # Update processing status
             self.is_processing = bool(self.prompts_queue)

@@ -3,6 +3,11 @@
 .env
 .streamlit/secrets.toml
 openfarma/config/credentials.json
+openfarma/database/imagenes.csv
+openfarma/database/stock.csv
+check_image_urls.py
+broken_images_report.xlsx
+broken_images_report.csv
 
 # Ignore folders
 venv/

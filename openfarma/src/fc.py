@@ -179,7 +179,10 @@ def buildProductContext(ids: list, product_data: dict, null_stock: bool = False,
             if include_images:
                 url = url_data.get(id, "")
                 if url:
-                    description += f"URL: https://{url}\n"
+                    if url.startswith("http"):
+                        description += f"URL: {url}\n"
+                    else:
+                        description += f"URL: https://{url}\n"
             
             productos.append(description)
 

@@ -41,11 +41,6 @@ class EventHandler(AssistantEventHandler):
             run_id = event.data.id
             self.thread_instance.requires_action_occurred = True
             self.handleRequiresAction(event.data, run_id)
-        elif event.event == 'thread.run.completed':
-            if self.thread_instance.requires_action_occurred:
-                self.thread_instance.force_stream = False
-            else:
-                self.thread_instance.force_stream = True
         elif event.event == 'thread.message.delta':
             if self.is_first_message:
                 left, _ = st.columns(BOT_CHAT_COLUMNS)
@@ -85,8 +80,7 @@ class EventHandler(AssistantEventHandler):
             tool_outputs=tool_outputs,
             event_handler=EventHandler(self.tool_handlers, self.client, self.thread_instance)
         ) as stream:
-            if self.thread_instance.requires_action_occurred and (not self.thread_instance.force_stream):
-                stream.until_done()
+            stream.until_done()
 
 class Thread:
     """
@@ -100,8 +94,6 @@ class Thread:
         client: The OpenAI client
         thread_id: The ID of the current thread
         message_queue: A queue to store messages
-        requires_action_occurred: Indicates if a requires_action event has occurred
-        force_stream: Indicates if streaming is forced
 
     Methods:
         __init__: Initializes the Thread class with the OpenAI API Key and creates a new thread.
@@ -142,8 +134,6 @@ class Thread:
         self.api_key = api_key
         self.client = openai.OpenAI(api_key=api_key)
         self.message_queue = deque()  # Queue to store messages
-        self.requires_action_occurred = False
-        self.force_stream = False
         try:
             self.thread = self.client.beta.threads.create()
             self.thread_id = self.thread.id
@@ -464,10 +454,6 @@ class Thread:
             Exception: If there's an error during the run
         """
         try:
-            # Reset thread state before starting new run
-            self.requires_action_occurred = False
-            self.force_stream = False
-            
             handler = EventHandler(tool_handlers, self.client, self)
             
             with self.client.beta.threads.runs.stream(
