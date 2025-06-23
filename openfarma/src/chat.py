@@ -219,7 +219,8 @@ class ChatbotApi:
         self.messages: List[Dict[str, str]] = []
 
         # Initialize with welcome message
-        self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
+        # TODO
+        # self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
 
     def _get_messages(self) -> List[Dict[str, str]]:
         """Get the current list of messages"""
@@ -432,12 +433,9 @@ class ChatbotApi:
         else:
             raise ValueError("Format must be 'txt', 'md', or 'pdf'")
 
-    def processQueue(self, handlers) -> bool:
+    def processQueue(self) -> bool:
         """
         Process the next prompt in the queue.
-
-        Args:
-            handlers: Callback handlers for message processing
 
         Returns:
             bool: True if a message was processed, False otherwise
@@ -454,6 +452,7 @@ class ChatbotApi:
                     f"{DJANGO_API_URL}/conversations/reply/",
                     json={"phone": self.phone, "message": message},
                 )
+                response = response.json()
 
             # Get and add assistant response
             # response = self.thread.retrieveLastMessage()
@@ -519,36 +518,36 @@ class ChatbotApi:
             on_submit=lambda: self.processUserInput(st.session_state.chat_input),
         )
 
-    def streamResponse(self, content: str, role: str) -> None:
-        """
-        Stream a response character by character with animation.
+    # def streamResponse(self, content: str, role: str) -> None:
+    #     """
+    #     Stream a response character by character with animation.
 
-        Args:
-            content (str): Message content to stream
-            role (str): Message role ('user' or 'assistant')
-        """
-        if role == "user":
-            _, right = st.columns(USER_CHAT_COLUMNS)
-            with right:
-                with st.chat_message(role, avatar=self.config.user_avatar_path):
-                    container = st.empty()
-                    current_text = ""
-                    for char in content:
-                        current_text += char
-                        current_text_styled = self.addStyleToMessage(current_text, role)
-                        container.write(current_text_styled, unsafe_allow_html=True)
-                        time.sleep(0.01)
-        else:
-            left, _ = st.columns(BOT_CHAT_COLUMNS)
-            with left:
-                with st.chat_message(role, avatar=self.config.bot_avatar_path):
-                    container = st.empty()
-                    current_text = ""
-                    for char in content:
-                        current_text += char
-                        current_text_styled = self.addStyleToMessage(current_text, role)
-                        container.write(current_text_styled, unsafe_allow_html=True)
-                        time.sleep(0.01)
+    #     Args:
+    #         content (str): Message content to stream
+    #         role (str): Message role ('user' or 'assistant')
+    #     """
+    #     if role == "user":
+    #         _, right = st.columns(USER_CHAT_COLUMNS)
+    #         with right:
+    #             with st.chat_message(role, avatar=self.config.user_avatar_path):
+    #                 container = st.empty()
+    #                 current_text = ""
+    #                 for char in content:
+    #                     current_text += char
+    #                     current_text_styled = self.addStyleToMessage(current_text, role)
+    #                     container.write(current_text_styled, unsafe_allow_html=True)
+    #                     time.sleep(0.01)
+    #     else:
+    #         left, _ = st.columns(BOT_CHAT_COLUMNS)
+    #         with left:
+    #             with st.chat_message(role, avatar=self.config.bot_avatar_path):
+    #                 container = st.empty()
+    #                 current_text = ""
+    #                 for char in content:
+    #                     current_text += char
+    #                     current_text_styled = self.addStyleToMessage(current_text, role)
+    #                     container.write(current_text_styled, unsafe_allow_html=True)
+    #                     time.sleep(0.01)
 
     def sendConversationEmail(
         self,

@@ -8,7 +8,7 @@ import string
 from datetime import datetime
 
 # Run local or remote, sqlite purpose
-RUN_LOCAL = False
+RUN_LOCAL = True
 
 if not RUN_LOCAL:
     import pysqlite3
@@ -135,8 +135,8 @@ def main():
                 st.error(f"Error actualizando stock: {str(e)}")
 
         # Initialize chat if not exists
-        if "phone" not in st.session_state:
-            st.session_state.phone = "11" + "".join(random.choices(string.digits, k=8))
+        if "chat" not in st.session_state:
+            phone = "11" + "".join(random.choices(string.digits, k=8))
             config = ChatConfig(
                 title="💬 openfarmAI",
                 header_caption=HEADER_CAPTION,
@@ -146,14 +146,14 @@ def main():
                 input_placeholder="Escriba su consulta aquí...",
                 loading_text="Buscando información...",
             )
-            st.session_state.chat = ChatbotApi(api_key, assistant_id, config)
+            st.session_state.chat = ChatbotApi(phone, config)
         st.html(st.session_state.chat.style.style)
 
         # Render chat interface
         st.session_state.chat.renderChatInterface()
 
         # Process message queue
-        if st.session_state.chat.processQueue(handlers):
+        if st.session_state.chat.processQueue():
             st.rerun()
 
         # Sidebar logout button
