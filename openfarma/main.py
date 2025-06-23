@@ -3,6 +3,8 @@ import sys
 import time
 import subprocess
 import streamlit as st
+import random
+import string
 from datetime import datetime
 
 # Run local or remote, sqlite purpose
@@ -10,36 +12,37 @@ RUN_LOCAL = False
 
 if not RUN_LOCAL:
     import pysqlite3
+
     # Trick to update sqlite
     CHROMA_DB_PATH = os.path.join(os.getcwd(), "openfarma/database/chroma")
-    __import__('pysqlite3')
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+    __import__("pysqlite3")
+    sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(CHROMA_DB_PATH, 'db.sqlite3'),
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(CHROMA_DB_PATH, "db.sqlite3"),
         }
     }
 
 # Get the absolute path to the project directory
-REPO_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+REPO_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 # Check if the src directory exists
-src_path = os.path.join(REPO_DIR, 'src')
+src_path = os.path.join(REPO_DIR, "src")
 if not os.path.exists(src_path):
     raise RuntimeError(f"Source directory not found at {src_path}")
 
 # Add the repository directory to the path
 if REPO_DIR not in sys.path:
     sys.path.insert(0, REPO_DIR)
-    sys.path.insert(0, os.path.join(REPO_DIR, 'src'))
-    sys.path.insert(0, os.path.join(REPO_DIR, 'openfarma'))
+    sys.path.insert(0, os.path.join(REPO_DIR, "src"))
+    sys.path.insert(0, os.path.join(REPO_DIR, "openfarma"))
 
 try:
     from openfarma.src.login import loginPage
     from openfarma.src.params import *
     from openfarma.src.fc import *
-    from openfarma.src.chat import Chat, ChatConfig
+    from openfarma.src.chat import ChatbotApi, ChatConfig
 except ImportError as e:
     raise ImportError(f"Import error: {e}")
 
@@ -49,11 +52,12 @@ assistant_id = st.secrets["OPENFARMA_ASSISTANT_ID"]
 
 # ------------------ Main ------------------
 
+
 def main():
     # Initialize authentication state
-    if 'authenticated' not in st.session_state:
+    if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
-    if 'username' not in st.session_state:
+    if "username" not in st.session_state:
         st.session_state.username = None
 
     # Check authentication
@@ -66,31 +70,31 @@ def main():
         st.sidebar.text(st.session_state.store_name)
         st.sidebar.text(st.session_state.store_address)
         st.sidebar.text(st.session_state.store_location)
-        
+
         # Get stock data just once
         if "is_stock" not in st.session_state:
             try:
                 env = os.environ.copy()
-                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
                     [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
                     check=True,
-                    env=env
+                    env=env,
                 )
                 st.session_state.is_stock = True
             except subprocess.CalledProcessError as e:
                 st.error(f"Error al ejecutar el script de stock: {str(e)}")
                 st.session_state.is_stock = False
-        
-        # Get images data just once 
+
+        # Get images data just once
         if "is_images" not in st.session_state:
             try:
                 env = os.environ.copy()
-                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
                     [sys.executable, PULL_IMAGES_PATH, st.session_state.store_id],
                     check=True,
-                    env=env
+                    env=env,
                 )
                 st.session_state.is_images = True
             except subprocess.CalledProcessError as e:
@@ -101,17 +105,17 @@ def main():
         if "is_abm" not in st.session_state:
             try:
                 env = os.environ.copy()
-                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
                     [sys.executable, PULL_ABM_PATH, st.session_state.store_id],
                     check=True,
-                    env=env
+                    env=env,
                 )
                 st.session_state.is_abm = True
             except subprocess.CalledProcessError as e:
                 st.error(f"Error al ejecutar el script de ABM: {str(e)}")
                 st.session_state.is_abm = False
-        
+
         # Initialize stock update timer
         if "last_stock_update" not in st.session_state:
             st.session_state.last_stock_update = time.time()
@@ -120,18 +124,19 @@ def main():
         if time.time() - st.session_state.last_stock_update >= STOCK_UPDATE_INTERVAL:
             try:
                 env = os.environ.copy()
-                env['PYTHONPATH'] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
+                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
                 subprocess.run(
                     [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
                     check=True,
-                    env=env
+                    env=env,
                 )
                 st.session_state.last_stock_update = time.time()
             except Exception as e:
                 st.error(f"Error actualizando stock: {str(e)}")
 
         # Initialize chat if not exists
-        if "chat" not in st.session_state:
+        if "phone" not in st.session_state:
+            st.session_state.phone = "11" + "".join(random.choices(string.digits, k=8))
             config = ChatConfig(
                 title="💬 openfarmAI",
                 header_caption=HEADER_CAPTION,
@@ -139,9 +144,9 @@ def main():
                 user_avatar_path=AVATAR_USER_PATH,
                 bot_avatar_path=AVATAR_BOT_PATH,
                 input_placeholder="Escriba su consulta aquí...",
-                loading_text="Buscando información..."
+                loading_text="Buscando información...",
             )
-            st.session_state.chat = Chat(api_key, assistant_id, config)
+            st.session_state.chat = ChatbotApi(api_key, assistant_id, config)
         st.html(st.session_state.chat.style.style)
 
         # Render chat interface
@@ -156,42 +161,45 @@ def main():
         if st.sidebar.button("Cerrar Sesión", key="logout_button"):
             # Export conversation and report prompts
             metadata = {
-                'Usuario': st.session_state.username,
-                'Sucursal': st.session_state.store_name,
-                'Dirección': st.session_state.store_address,
-                'Localidad': st.session_state.store_location
+                "Usuario": st.session_state.username,
+                "Sucursal": st.session_state.store_name,
+                "Dirección": st.session_state.store_address,
+                "Localidad": st.session_state.store_location,
             }
-            
+
             # Only export and send if there was actual conversation
             if len(st.session_state.chat.messages) > 1:
                 # Export conversation to PDF
                 output_path = f"{HISTORY_PATH}/chatbot_{datetime.now().strftime('%Y-%m-%d %H-%M')}.pdf"
-                st.session_state.chat.exportConversation(format="pdf", metadata=metadata, output_path=output_path)
+                st.session_state.chat.exportConversation(
+                    format="pdf", metadata=metadata, output_path=output_path
+                )
 
                 # Send conversation to email
                 st.session_state.chat.sendConversationEmail(
-                    from_email=EMAIL_FROM, 
-                    to_email=EMAIL_TO, 
-                    password=EMAIL_PASSWORD, 
-                    attachments=[output_path], 
-                    metadata=metadata
+                    from_email=EMAIL_FROM,
+                    to_email=EMAIL_TO,
+                    password=EMAIL_PASSWORD,
+                    attachments=[output_path],
+                    metadata=metadata,
                 )
-            
+
             # Report final prompt count before clearing
             st.session_state.chat.clearChat()
-            
+
             # Clear authentication and session state
             st.session_state.authenticated = False
             st.session_state.username = None
             st.session_state.store_name = None
             st.session_state.store_address = None
             st.session_state.store_location = None
-            
+
             # Remove keys from session state
             del st.session_state.is_stock
             del st.session_state.last_stock_update
             # Rerun the app
             st.rerun()
+
 
 if __name__ == "__main__":
     main()
