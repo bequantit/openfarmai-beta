@@ -25,11 +25,48 @@ class Assistant:
         loadFromId: Loads an existing assistant's configuration using its ID.
 
     Example:
+        # Example 1: Math Tutor with Code Interpreter
         >>> assistant = Assistant("your-api-key")
-        >>> assistant.setMetadata("Math Tutor", "A helpful math tutor", instructions)
-        >>> assistant.setModel("gpt-4")
-        >>> assistant.addTool("code_interpreter")
-        >>> assistant.create()
+        >>> assistant.setMetadata(
+        ...     "Math Tutor",
+        ...     "A helpful math tutor that can solve complex problems",
+        ...     "You are a math tutor. Help students solve problems step by step using code when needed."
+        ... )
+        >>> assistant.setModel("gpt-4-turbo-preview")
+        >>> assistant.addTool("code_interpreter")  # Enables Python code execution for calculations
+        >>> response = assistant.create()
+
+        # Example 2: Weather Assistant with Function Calling
+        >>> assistant = Assistant("your-api-key")
+        >>> assistant.setMetadata(
+        ...     "Weather Assistant",
+        ...     "A weather forecasting assistant",
+        ...     "You help users get weather information for any location."
+        ... )
+        >>> # Add weather API function
+        >>> weather_function = {
+        ...     "name": "get_weather",
+        ...     "description": "Get weather data for a location",
+        ...     "parameters": {
+        ...         "type": "object",
+        ...         "properties": {
+        ...             "location": {"type": "string"},
+        ...             "days": {"type": "integer"}
+        ...         }
+        ...     }
+        ... }
+        >>> assistant.addTool("function", weather_function)
+        >>> response = assistant.create()
+
+        # Example 3: Book Assistant with RAG
+        >>> assistant = Assistant("your-api-key")
+        >>> assistant.setMetadata(
+        ...     "Book Advisor",
+        ...     "A book recommendation assistant with access to book database",
+        ...     "You help users find and learn about books using the knowledge base."
+        ... )
+        >>> assistant.addTool("retrieval")  # Enables access to uploaded book database
+        >>> response = assistant.create()
 
     Note:
         - The assistant configuration is stored in the assistant_data attribute.
@@ -53,18 +90,18 @@ class Assistant:
             'response_format': {"type": "text"}  # Default response format
         }
 
-    def setMetadata(self, name: str, description: str, instructions: str):
+    def setMetadata(self, name: str, description: str | list[str], instructions: str | list[str], join_key: str = ""):
         """
         Sets the basic metadata for the assistant.
 
         Args:
             name (str): Name of the assistant.
-            description (str): Brief description of the assistant.
-            instructions (str): Detailed instructions for the assistant's behavior.
+            description (str | list[str]): Brief description of the assistant. Can be a string or list of strings.
+            instructions (str | list[str]): Detailed instructions for the assistant's behavior. Can be a string or list of strings.
         """
         self.assistant_data['name'] = name
-        self.assistant_data['description'] = description
-        self.assistant_data['instructions'] = instructions
+        self.assistant_data['description'] = join_key.join(description) if isinstance(description, list) else description
+        self.assistant_data['instructions'] = join_key.join(instructions) if isinstance(instructions, list) else instructions
 
     def setModel(self, model: str):
         """
