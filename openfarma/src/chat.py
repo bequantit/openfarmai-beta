@@ -30,7 +30,6 @@ providing a robust, customizable chat interface with comprehensive export and tr
 
 import io
 import os
-import time
 import base64
 import smtplib
 import streamlit as st
@@ -44,7 +43,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
-from assistant.thread import Thread
+# from assistant.thread import Thread
 from .params import USER_CHAT_COLUMNS, BOT_CHAT_COLUMNS
 from .utils import PromptTracker
 
@@ -570,7 +569,7 @@ class ChatbotApi:
 
             for msg in self._get_messages():
                 role = "Usuario" if msg["role"] == "user" else "Asistente"
-                timestamp = msg["timestamp"].strftime("%H:%M:%S")
+                timestamp = msg["timestamp"].strftime("%H:%M:%S")  # type: ignore
                 f.write(f"[{role} - {timestamp}]\n")
                 f.write(f"{msg['content']}\n")
                 f.write("-" * 50 + "\n\n")
@@ -600,7 +599,7 @@ class ChatbotApi:
 
             for msg in self._get_messages():
                 role = "👤 Usuario" if msg["role"] == "user" else "🤖 Asistente"
-                timestamp = msg["timestamp"].strftime("%H:%M:%S")
+                timestamp = msg["timestamp"].strftime("%H:%M:%S")  # type: ignore
                 f.write(f"### {role} ({timestamp})\n\n")
                 f.write(f"{msg['content']}\n\n")
                 f.write("---\n\n")
@@ -641,7 +640,7 @@ class ChatbotApi:
         pdf.set_font("Arial", size=12)
         for msg in self._get_messages():
             role = "Usuario" if msg["role"] == "user" else "Asistente"
-            timestamp = msg["timestamp"].strftime("%H:%M:%S")
+            timestamp = msg["timestamp"].strftime("%H:%M:%S")  # type: ignore
 
             # Role header with timestamp
             pdf.set_font("Arial", "B", 12)
@@ -767,9 +766,7 @@ class ChatbotApi:
                             )
                             st.write(message, unsafe_allow_html=True)
 
-    def exportConversation(
-        self, format: str = "txt", output_path: str = None, metadata: dict = None
-    ) -> str:
+    def exportConversation(self, format: str, output_path: str, metadata: dict) -> str:
         """
         Export the conversation to a file in the specified format with metadata.
 
@@ -1399,7 +1396,7 @@ class ChatbotApi:
 
         start_time = self._get_messages()[0]["timestamp"]
         end_time = self._get_messages()[-1]["timestamp"]
-        duration = end_time - start_time
+        duration = end_time - start_time  # type: ignore
 
         minutes = duration.total_seconds() / 60
         if minutes < 1:
