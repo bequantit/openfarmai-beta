@@ -44,11 +44,13 @@ Usage:
 import os
 import sys
 import time
-import subprocess
 import streamlit as st
 import random
 import string
+import requests
 from datetime import datetime
+
+DJANGO_API_URL = "http://127.0.0.1:8000"
 
 # Run local or remote, sqlite purpose
 RUN_LOCAL = True
@@ -128,31 +130,34 @@ def main():
         # Get stock data just once
         if "is_stock" not in st.session_state:
             try:
-                # Set up environment with proper Python path
-                env = os.environ.copy()
-                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
-                subprocess.run(
-                    [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
-                    check=True,
-                    env=env,
+                response = requests.post(
+                    f"{DJANGO_API_URL}/openfarma/pull-stock/{st.session_state.store_id}/",
                 )
-                st.session_state.is_stock = True
-            except subprocess.CalledProcessError as e:
+                if response.status_code == 200:
+                    print("Stock data retrieved successfully.")
+                    st.session_state.is_stock = True
+                else:
+                    st.error(f"Error al ejecutar el script de stock: {response.text}")
+                    st.session_state.is_stock = False
+            except Exception as e:
                 st.error(f"Error al ejecutar el script de stock: {str(e)}")
                 st.session_state.is_stock = False
 
         # Get images data just once
         if "is_images" not in st.session_state:
             try:
-                env = os.environ.copy()
-                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
-                subprocess.run(
-                    [sys.executable, PULL_IMAGES_PATH, st.session_state.store_id],
-                    check=True,
-                    env=env,
+                response = requests.post(
+                    f"{DJANGO_API_URL}/openfarma/pull-images/{st.session_state.store_id}/",
                 )
-                st.session_state.is_images = True
-            except subprocess.CalledProcessError as e:
+                if response.status_code == 200:
+                    print("Images data retrieved successfully.")
+                    st.session_state.is_images = True
+                else:
+                    st.error(
+                        f"Error al ejecutar el script de imágenes: {response.text}"
+                    )
+                    st.session_state.is_images = False
+            except Exception as e:
                 st.error(f"Error al ejecutar el script de imágenes: {str(e)}")
                 st.session_state.is_images = False
 
@@ -160,15 +165,16 @@ def main():
         # This provides product catalog and descriptions for the AI assistant
         if "is_abm" not in st.session_state:
             try:
-                env = os.environ.copy()
-                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
-                subprocess.run(
-                    [sys.executable, PULL_ABM_PATH, st.session_state.store_id],
-                    check=True,
-                    env=env,
+                response = requests.post(
+                    f"{DJANGO_API_URL}/openfarma/pull-abm/{st.session_state.store_id}/",
                 )
-                st.session_state.is_abm = True
-            except subprocess.CalledProcessError as e:
+                if response.status_code == 200:
+                    print("ABM data retrieved successfully.")
+                    st.session_state.is_abm = True
+                else:
+                    st.error(f"Error al ejecutar el script de ABM: {response.text}")
+                    st.session_state.is_abm = False
+            except Exception as e:
                 st.error(f"Error al ejecutar el script de ABM: {str(e)}")
                 st.session_state.is_abm = False
 
@@ -180,14 +186,15 @@ def main():
         # Updates occur every hour (configurable via STOCK_UPDATE_INTERVAL)
         if time.time() - st.session_state.last_stock_update >= STOCK_UPDATE_INTERVAL:
             try:
-                env = os.environ.copy()
-                env["PYTHONPATH"] = f"{REPO_DIR}:{env.get('PYTHONPATH', '')}"
-                subprocess.run(
-                    [sys.executable, PULL_STOCK_PATH, st.session_state.store_id],
-                    check=True,
-                    env=env,
+                response = requests.post(
+                    f"{DJANGO_API_URL}/openfarma/pull-stock/{st.session_state.store_id}/",
                 )
-                st.session_state.last_stock_update = time.time()
+                if response.status_code == 200:
+                    print("Stock data updated successfully.")
+                    st.session_state.is_stock = True
+                    st.session_state.last_stock_update = time.time()
+                else:
+                    st.error(f"Error actualizando stock: {response.text}")
             except Exception as e:
                 st.error(f"Error actualizando stock: {str(e)}")
 
@@ -266,13 +273,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    Application entry point.
-    
-    This block ensures the main function is only called when the script
-    is executed directly, not when imported as a module.
-    
-    The main function handles the complete application lifecycle including
-    authentication, data synchronization, chat interface, and session management.
-    """
     main()
