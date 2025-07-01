@@ -9,7 +9,7 @@ openai
 pandas==2.1.4
 sphinx
 sphinx-rtd-theme
-streamlit==1.38.0
+streamlit==1.46.0
 python-magic
 chardet
 secure-smtplib

@@ -48,6 +48,7 @@ from .params import USER_CHAT_COLUMNS, BOT_CHAT_COLUMNS
 from .utils import PromptTracker
 
 DJANGO_API_URL = "http://127.0.0.1:8000"
+SHARED_AUTH_TOKEN = st.secrets.get("SHARED_AUTH_TOKEN", None)
 
 
 def encodeImage(image_path: str) -> str:
@@ -948,6 +949,7 @@ class ChatbotApi:
                 # self.thread.runWithStreaming(self.assistant_id, handlers)
                 response = requests.post(
                     f"{DJANGO_API_URL}/conversations/reply/",
+                    headers={"Authorization": f"Bearer {SHARED_AUTH_TOKEN}"},
                     json={"phone": self.phone, "message": message},
                 )
                 response = response.json()
@@ -980,81 +982,6 @@ class ChatbotApi:
             self.is_processing = True
 
     def renderChatInterface(self) -> None:
-        """
-        Render the complete chat interface in Streamlit with header, messages, and input.
-
-        This method creates the full chat interface including the fixed header with logo,
-        message display area, and chat input field. It applies the configured styling
-        and sets up the interactive components for user interaction.
-
-        Returns:
-            None. The interface is rendered directly in the Streamlit app.
-
-        Raises:
-            Exception: If there's an error rendering the interface or loading images.
-
-        Interface Components:
-            1. Fixed Header: Logo and caption at the top of the page
-            2. Message Display: Container showing conversation history
-            3. Chat Input: Text input field for user messages
-            4. Styling: Applied CSS for professional appearance
-
-        Examples:
-            # Basic interface rendering
-            >>> chat = Chat(api_key, assistant_id)
-            >>> chat.renderChatInterface()
-
-            # Custom configuration rendering
-            >>> config = ChatConfig(
-            ...     header_logo_path="assets/logo.png",
-            ...     header_caption="Asistente médico virtual"
-            ... )
-            >>> chat = Chat(api_key, assistant_id, config=config)
-            >>> chat.renderChatInterface()
-
-            # Error handling
-            >>> try:
-            ...     chat.renderChatInterface()
-            ... except Exception as e:
-            ...     st.error(f"Error rendering interface: {e}")
-
-        Header Features:
-            - Fixed position at top of page
-            - Embedded logo image (base64 encoded)
-            - Customizable caption text
-            - Professional styling and layout
-
-        Message Display:
-            - Shows all conversation messages
-            - User and bot messages are visually differentiated
-            - Messages include timestamps and proper formatting
-            - Responsive layout for different screen sizes
-
-        Input Field:
-            - Placeholder text from configuration
-            - Disabled during message processing
-            - Automatic message handling on submit
-            - Custom styling for better UX
-
-        Styling Integration:
-            - Applies ChatStyle CSS rules
-            - Hides Streamlit UI elements for clean interface
-            - Responsive design for mobile and desktop
-            - Brand-consistent color scheme
-
-        Use Cases:
-            - Main chat application interface
-            - Customer support chat systems
-            - Medical consultation interfaces
-            - Educational AI assistants
-
-        Note:
-            - Must be called after Chat initialization
-            - Interface is rendered in the current Streamlit session
-            - Header logo should be accessible at configured path
-            - Styling is applied globally to the chat interface
-            - Input field automatically handles user submissions
-        """
         # Header
         header_logo = encodeImage(self.config.header_logo_path)
         st.markdown(
@@ -1085,36 +1012,33 @@ class ChatbotApi:
             on_submit=lambda: self.processUserInput(st.session_state.chat_input),
         )
 
-    # def streamResponse(self, content: str, role: str) -> None:
-    #     """
-    #     Stream a response character by character with animation.
+        audio_file = st.audio_input(
+            label="Grabar audio",
+            key="audio_input",
+            disabled=self.is_processing,
+        )
 
-    #     Args:
-    #         content (str): Message content to stream
-    #         role (str): Message role ('user' or 'assistant')
-    #     """
-    #     if role == "user":
-    #         _, right = st.columns(USER_CHAT_COLUMNS)
-    #         with right:
-    #             with st.chat_message(role, avatar=self.config.user_avatar_path):
-    #                 container = st.empty()
-    #                 current_text = ""
-    #                 for char in content:
-    #                     current_text += char
-    #                     current_text_styled = self.addStyleToMessage(current_text, role)
-    #                     container.write(current_text_styled, unsafe_allow_html=True)
-    #                     time.sleep(0.01)
-    #     else:
-    #         left, _ = st.columns(BOT_CHAT_COLUMNS)
-    #         with left:
-    #             with st.chat_message(role, avatar=self.config.bot_avatar_path):
-    #                 container = st.empty()
-    #                 current_text = ""
-    #                 for char in content:
-    #                     current_text += char
-    #                     current_text_styled = self.addStyleToMessage(current_text, role)
-    #                     container.write(current_text_styled, unsafe_allow_html=True)
-    #                     time.sleep(0.01)
+        if audio_file is not None:
+            if st.button("Enviar audio"):
+                st.success("Enviando audio...")
+
+                files = {"audio": (audio_file.name, audio_file, "audio/wav")}
+                data = {"phone": self.phone}
+                headers = {"Authorization": f"Bearer {os.getenv('SHARED_AUTH_TOKEN')}"}
+
+                response = requests.post(
+                    f"{DJANGO_API_URL}/conversations/reply/",
+                    data=data,
+                    files=files,
+                    headers=headers,
+                )
+
+                if response.status_code == 200:
+                    self.addMessage(f"Audio enviado: {audio_file.name}", "user")
+                    reply = response.json().get("reply", "")
+                    self.addMessage(reply, "assistant")
+                else:
+                    st.error(f"Error al enviar audio: {response.text}")
 
     def sendConversationEmail(
         self,
