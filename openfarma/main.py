@@ -53,7 +53,7 @@ from datetime import datetime
 DJANGO_API_URL = "http://127.0.0.1:8000"
 
 # Run local or remote, sqlite purpose
-RUN_LOCAL = True
+RUN_LOCAL = False
 
 if not RUN_LOCAL:
     # Use pysqlite3 for enhanced SQLite functionality in remote environments
@@ -97,8 +97,8 @@ except ImportError as e:
 
 # Retrieve API keys from Streamlit secrets for secure configuration
 # These are required for OpenAI Assistant integration
-api_key = st.secrets["OPENFARMA_API_KEY"]
-assistant_id = st.secrets["OPENFARMA_ASSISTANT_ID"]
+# api_key = st.secrets["OPENFARMA_API_KEY"]
+# assistant_id = st.secrets["OPENFARMA_ASSISTANT_ID"]
 
 # ------------------ Main ------------------
 

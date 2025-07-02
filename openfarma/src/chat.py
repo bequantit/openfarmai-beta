@@ -42,13 +42,16 @@ from PIL import Image
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
+from dotenv import load_dotenv
 
 # from assistant.thread import Thread
 from .params import USER_CHAT_COLUMNS, BOT_CHAT_COLUMNS
 from .utils import PromptTracker
 
+load_dotenv()
+
 DJANGO_API_URL = "http://127.0.0.1:8000"
-SHARED_AUTH_TOKEN = st.secrets.get("SHARED_AUTH_TOKEN", None)
+SHARED_AUTH_TOKEN = os.getenv("SHARED_AUTH_TOKEN")
 
 
 def encodeImage(image_path: str) -> str:

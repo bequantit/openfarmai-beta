@@ -1,13 +1,17 @@
 import json
 import streamlit as st
+import os
+from dotenv import load_dotenv
 from openfarma.src.params import *
 from src.assistant.assistant import Assistant
 
+load_dotenv()
+
 # Load openai api key
-api_key = st.secrets['OPENFARMA_API_KEY']
+api_key = os.getenv("OPENFARMA_API_KEY")
 
 # Load function calling definitions
-with open(FC_CONFIG_PATH, 'r', encoding='utf-8') as f:
+with open(FC_CONFIG_PATH, "r", encoding="utf-8") as f:
     fc_config = json.load(f)
 
 # Create the OpenAI assistant
@@ -21,5 +25,3 @@ for function in fc_config:
 
 # Create the assistant
 response = assistant.create()
-
-

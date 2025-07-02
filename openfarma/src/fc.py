@@ -1,10 +1,14 @@
 import streamlit as st
 import pandas as pd
+import os
+from dotenv import load_dotenv
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 from .params import *
 
-api_key = st.secrets["OPENFARMA_API_KEY"]
+load_dotenv()
+
+api_key = os.getenv("OPENFARMA_API_KEY")
 embedding = OpenAIEmbeddings(api_key=api_key)
 
 # Loading the vectordatabase

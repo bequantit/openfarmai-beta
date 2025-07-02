@@ -14,20 +14,22 @@ from googleapiclient.errors import HttpError
 from google.oauth2.service_account import Credentials
 
 # Authenticate with service account
-credentials = json.loads(st.secrets["credentials"]["json"])
-with open(CREDENTIALS_PATH, "w") as json_file:
-    json.dump(credentials, json_file, indent=4)
+# credentials = json.loads(st.secrets["credentials"]["json"])
+# with open(CREDENTIALS_PATH, "w") as json_file:
+#     json.dump(credentials, json_file, indent=4)
 credentials = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=SCOPES)
 
 # Create gspread client with credentials
 gc = gspread.authorize(credentials)
 
 try:
-    spreadsheet = gc.open_by_key(SPREADSHEET_ID_ABM)    # Open Google Spreadsheet using its ID
-    worksheet = spreadsheet.sheet1                      # Or use .worksheet("Sheet name")
-    data = worksheet.get_all_values()                   # Read current data
+    spreadsheet = gc.open_by_key(
+        SPREADSHEET_ID_ABM
+    )  # Open Google Spreadsheet using its ID
+    worksheet = spreadsheet.sheet1  # Or use .worksheet("Sheet name")
+    data = worksheet.get_all_values()  # Read current data
     if data:
-        print(f"Data retrieved successfully. {len(data)-1} records.")
+        print(f"Data retrieved successfully. {len(data) - 1} records.")
     else:
         print("No data found.")
 
@@ -41,4 +43,4 @@ df = pd.DataFrame(data[1:], columns=data[0])
 df = df.astype(str)
 
 # Save the DataFrame to a CSV file
-df.to_csv(ABM_PATH, index=False, sep=',', encoding='utf-8')
+df.to_csv(ABM_PATH, index=False, sep=",", encoding="utf-8")
