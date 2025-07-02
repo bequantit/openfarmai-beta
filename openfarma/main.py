@@ -217,7 +217,8 @@ def main():
         st.html(st.session_state.chat.style.style)
 
         # Render the main chat interface
-        st.session_state.chat.renderChatInterface()
+        if st.session_state.chat.renderChatInterface():
+            st.rerun()
 
         # Process message queue
         if st.session_state.chat.processQueue():

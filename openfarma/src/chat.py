@@ -209,10 +209,6 @@ class ChatStyle:
             padding-bottom: 2rem;
         }
         
-        .chat-container {
-            margin-top: 40px; /* Espacio para el header fijo */
-        }
-        
         .fixed-header {
             position: fixed;
             top: 0;
@@ -244,6 +240,87 @@ class ChatStyle:
         }
         div[data-testid="stChatInput"] textarea {
             font-size: 20px;  /* Ajusta el tamaño de la fuente aquí */
+        }
+        /* Estilos adicionales para mejorar la interfaz de chat */
+
+        .chat-container {
+            margin-top: 40px; /* Espacio para el header fijo */
+            margin-bottom: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .input-section {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--background-color);
+            padding: 15px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 10px;
+        }
+
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .stTabs [aria-selected="true"] {
+            background-color: var(--primary-color);
+            color: black;
+        }
+
+        /* Mejorar el espaciado de los mensajes */
+        .stChatMessage {
+            margin-bottom: 15px;
+        }
+
+        /* Estilo para el botón de enviar audio */
+        .stButton > button[type="primary"] {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .stButton > button[type="primary"]:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        /* Mejorar la apariencia del audio input */
+        .stAudioInput {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .chat-container {
+                max-height: 50vh;
+            }
+            
+            .input-section {
+                padding: 10px 0;
+            }
+        }
+
+        /* Animación suave para los mensajes */
+        .stChatMessage {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         </style>
     """
@@ -742,31 +819,6 @@ class ChatbotApi:
         # self.thread = Thread(self.thread.api_key)
         # self.addMessage("Hola, ¿en qué te puedo ayudar?", "assistant")
 
-    def displayMessages(self, chat_container) -> None:
-        """Display all messages in the Streamlit container"""
-        with chat_container:
-            for msg in self._get_messages():
-                if msg["role"] == "user":
-                    _, right = st.columns(USER_CHAT_COLUMNS)
-                    with right:
-                        with st.chat_message(
-                            msg["role"], avatar=self.config.user_avatar_path
-                        ):
-                            message = self.addStyleToMessage(
-                                msg["content"], msg["role"]
-                            )
-                            st.write(message, unsafe_allow_html=True)
-                else:
-                    left, _ = st.columns(BOT_CHAT_COLUMNS)
-                    with left:
-                        with st.chat_message(
-                            msg["role"], avatar=self.config.bot_avatar_path
-                        ):
-                            message = self.addStyleToMessage(
-                                msg["content"], msg["role"]
-                            )
-                            st.write(message, unsafe_allow_html=True)
-
     def exportConversation(self, format: str, output_path: str, metadata: dict) -> str:
         """
         Export the conversation to a file in the specified format with metadata.
@@ -981,7 +1033,7 @@ class ChatbotApi:
             self.prompts_queue.append(user_input)
             self.is_processing = True
 
-    def renderChatInterface(self) -> None:
+    def renderChatInterface(self) -> bool:
         # Header
         header_logo = encodeImage(self.config.header_logo_path)
         st.markdown(
@@ -998,47 +1050,121 @@ class ChatbotApi:
             f"""<div class="header-caption">{self.config.header_caption}</div>""",
             unsafe_allow_html=True,
         )
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
         # Chat container - display messages
+        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
         chat_container = st.container()
         self.displayMessages(chat_container)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        # Chat input
-        st.chat_input(
-            placeholder=self.config.input_placeholder,
-            disabled=self.is_processing,
-            key="chat_input",
-            on_submit=lambda: self.processUserInput(st.session_state.chat_input),
-        )
+        # Input section - organized in a better layout
+        st.markdown('<div class="input-section">', unsafe_allow_html=True)
 
-        audio_file = st.audio_input(
-            label="Grabar audio",
-            key="audio_input",
-            disabled=self.is_processing,
-        )
+        # Create tabs or columns for better organization
+        input_tab1, input_tab2 = st.tabs(["💬 Texto", "🎤 Audio"])
 
-        if audio_file is not None:
-            if st.button("Enviar audio"):
-                st.success("Enviando audio...")
+        with input_tab1:
+            # Text input
+            user_input = st.chat_input(
+                placeholder=self.config.input_placeholder,
+                disabled=self.is_processing,
+                key="chat_input",
+            )
 
-                files = {"audio": (audio_file.name, audio_file, "audio/wav")}
-                data = {"phone": self.phone}
-                headers = {"Authorization": f"Bearer {os.getenv('SHARED_AUTH_TOKEN')}"}
+            if user_input:
+                self.processUserInput(user_input)
 
+        with input_tab2:
+            # Audio input section
+            audio_file = st.audio_input(
+                label="Grabar mensaje de voz",
+                key="audio_input",
+                disabled=self.is_processing,
+                help="Graba tu mensaje y presiona 'Enviar audio' para enviarlo",
+            )
+
+            if audio_file is not None:
+                # Show audio file info
+                st.info(f"📎 Audio grabado: {audio_file.name}")
+
+                col1, col2, col3 = st.columns([1, 1, 2])
+                with col1:
+                    if st.button(
+                        "🎵 Enviar audio", disabled=self.is_processing, type="primary"
+                    ):
+                        return self._process_audio_input(audio_file)
+                with col2:
+                    if st.button("🗑️ Cancelar", disabled=self.is_processing):
+                        st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+        return False
+
+    def _process_audio_input(self, audio_file) -> bool:
+        """Método auxiliar para procesar el input de audio"""
+        self.is_processing = True
+
+        try:
+            st.success("📤 Enviando audio...")
+
+            files = {"audio": (audio_file.name, audio_file, "audio/wav")}
+            data = {"phone": self.phone}
+            headers = {"Authorization": f"Bearer {os.getenv('SHARED_AUTH_TOKEN')}"}
+
+            with st.spinner(self.config.loading_text):
                 response = requests.post(
                     f"{DJANGO_API_URL}/conversations/reply/",
                     data=data,
                     files=files,
                     headers=headers,
                 )
+                response = response.json()
 
-                if response.status_code == 200:
-                    self.addMessage(f"Audio enviado: {audio_file.name}", "user")
-                    reply = response.json().get("reply", "")
-                    self.addMessage(reply, "assistant")
+            # Add messages to chat
+            self.addMessage(f"🎤 Audio enviado: {audio_file.name}", "user")
+            reply = response["reply"]
+            self.addMessage(reply, "assistant")
+
+            self.prompt_tracker.incrementPromptCount()
+            st.success("✅ Audio procesado correctamente")
+
+            return True
+
+        except Exception as e:
+            st.error(f"❌ Error al procesar el audio: {str(e)}")
+            return False
+
+        finally:
+            self.is_processing = False
+
+    def displayMessages(self, chat_container) -> None:
+        """Display all messages in the Streamlit container with improved spacing"""
+        with chat_container:
+            for i, msg in enumerate(self._get_messages()):
+                # Add some spacing between messages
+                if i > 0:
+                    st.markdown("<br>", unsafe_allow_html=True)
+
+                if msg["role"] == "user":
+                    _, right = st.columns(USER_CHAT_COLUMNS)
+                    with right:
+                        with st.chat_message(
+                            msg["role"], avatar=self.config.user_avatar_path
+                        ):
+                            message = self.addStyleToMessage(
+                                msg["content"], msg["role"]
+                            )
+                            st.write(message, unsafe_allow_html=True)
                 else:
-                    st.error(f"Error al enviar audio: {response.text}")
+                    left, _ = st.columns(BOT_CHAT_COLUMNS)
+                    with left:
+                        with st.chat_message(
+                            msg["role"], avatar=self.config.bot_avatar_path
+                        ):
+                            message = self.addStyleToMessage(
+                                msg["content"], msg["role"]
+                            )
+                            st.write(message, unsafe_allow_html=True)
 
     def sendConversationEmail(
         self,
