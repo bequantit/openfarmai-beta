@@ -50,7 +50,7 @@ from .utils import PromptTracker
 
 load_dotenv()
 
-DJANGO_API_URL = "http://127.0.0.1:8000"
+DJANGO_API_URL = os.getenv("DJANGO_API_URL")
 SHARED_AUTH_TOKEN = os.getenv("SHARED_AUTH_TOKEN")
 
 

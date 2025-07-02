@@ -49,8 +49,11 @@ import random
 import string
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
 
-DJANGO_API_URL = "http://127.0.0.1:8000"
+load_dotenv()
+
+DJANGO_API_URL = os.getenv("DJANGO_API_URL")
 
 # Run local or remote, sqlite purpose
 RUN_LOCAL = False
