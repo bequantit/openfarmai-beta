@@ -1,4 +1,3 @@
-import json
 import gspread
 import streamlit as st
 from datetime import datetime, timedelta

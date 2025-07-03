@@ -1,46 +1,3 @@
-"""
-OpenFarma AI Assistant - Main Application Entry Point
-
-This module serves as the main entry point for the OpenFarma AI Assistant application,
-providing a comprehensive pharmaceutical assistance system with authentication,
-real-time data synchronization, and AI-powered chat capabilities.
-
-Key Features:
-- User authentication and session management
-- Real-time stock and product data synchronization
-- AI-powered chat interface for pharmaceutical assistance
-- Automatic data updates and maintenance
-- Conversation export and email reporting
-- Store-specific data management
-
-Application Flow:
-1. Environment setup and path configuration
-2. User authentication via login interface
-3. Store-specific data synchronization (stock, images, ABM)
-4. Chat interface initialization and rendering
-5. Real-time data updates and conversation management
-6. Session cleanup and conversation export on logout
-
-Dependencies:
-- Streamlit: Web application framework
-- OpenAI: AI assistant integration
-- SQLite: Local database management
-- Subprocess: External script execution
-- Various OpenFarma modules for specific functionality
-
-Configuration:
-- API keys managed through Streamlit secrets
-- Database paths and constants from params module
-- Environment-specific settings (local vs remote)
-
-Usage:
-    Run this file directly with Streamlit:
-    streamlit run openfarma/main.py
-
-    Or execute as a Python script:
-    python openfarma/main.py
-"""
-
 import os
 import sys
 import time
@@ -60,7 +17,7 @@ RUN_LOCAL = False
 
 if not RUN_LOCAL:
     # Use pysqlite3 for enhanced SQLite functionality in remote environments
-    import pysqlite3
+    import pysqlite3  # noqa: F401
 
     # Trick to update sqlite
     CHROMA_DB_PATH = os.path.join(os.getcwd(), "openfarma/database/chroma")
@@ -90,18 +47,22 @@ if REPO_DIR not in sys.path:
 
 try:
     from openfarma.src.login import loginPage
-    from openfarma.src.params import *
-    from openfarma.src.fc import *
+    from openfarma.src.params import (
+        HEADER_CAPTION,
+        STOCK_UPDATE_INTERVAL,
+        HEADER_LOGO_PATH,
+        HISTORY_PATH,
+        AVATAR_USER_PATH,
+        AVATAR_BOT_PATH,
+        EMAIL_FROM,
+        EMAIL_TO,
+        EMAIL_PASSWORD,
+    )
+
+    # from openfarma.src.fc import *
     from openfarma.src.chat import ChatbotApi, ChatConfig
 except ImportError as e:
     raise ImportError(f"Import error: {e}")
-
-# ------------------ API Configuration ------------------
-
-# Retrieve API keys from Streamlit secrets for secure configuration
-# These are required for OpenAI Assistant integration
-# api_key = st.secrets["OPENFARMA_API_KEY"]
-# assistant_id = st.secrets["OPENFARMA_ASSISTANT_ID"]
 
 # ------------------ Main ------------------
 
@@ -251,9 +212,9 @@ def main():
 
                 # Send conversation to email for record keeping
                 st.session_state.chat.sendConversationEmail(
-                    from_email=EMAIL_FROM,
-                    to_email=EMAIL_TO,
-                    password=EMAIL_PASSWORD,
+                    from_email=EMAIL_FROM,  # type: ignore
+                    to_email=EMAIL_TO,  # type: ignore
+                    password=EMAIL_PASSWORD,  # type: ignore
                     attachments=[output_path],
                     metadata=metadata,
                 )
