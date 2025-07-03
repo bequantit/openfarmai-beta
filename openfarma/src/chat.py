@@ -508,7 +508,7 @@ class ChatbotApi:
                 response = response.json()
 
             # Add messages to chat
-            self.addMessage(f"🎤 Audio enviado: {audio_file.name}", "user")
+            self.addMessage(f"🎤 Audio enviado: {response['message']}", "user")
             reply = response["reply"]
             self.addMessage(reply, "assistant")
 
