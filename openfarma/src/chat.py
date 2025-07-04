@@ -35,34 +35,17 @@ def encodeImage(image_path: str) -> str:
 class ChatStyle:
     style: str = """
         <style>
-        div[data-testid="stChatMessage"] {
-            background-color: white;
-            margin-bottom: -25px; /* Ajusta este valor para más o menos espacio */
-        }
-        div[data-testid="stToolbar"] {visibility: hidden; height: 0%; position: fixed;}
-        div[data-testid="stDecoration"] {visibility: hidden; height: 0%; position: fixed;}
-        div[data-testid="stStatusWidget"] {visibility: hidden; height: 0%; position: fixed;}
-        #MainMenu {visibility: hidden; height: 0%;}
-        header {visibility: hidden; height: 0%;}
-        footer {visibility: hidden; height: 0%;}
-        
-        /* Estilo específico para los mensajes del bot */
-        .bot-message {
-            background-color: #FFFFFF;
-            border-style: dotted;
-            border-color: #8EA749;
-            border-width: 3px;
-            border-radius: 10px;
-            padding: 15px;
-            color: black;
-            font-size: 20px;  /* Ajusta el tamaño de la fuente */
-            margin-left: auto;  /* Alinea los mensajes del bot a la derecha */
-            position: relative;
-            top: -13.5px;  /* Ajusta la posición vertical de los mensajes del usuario */
+        /* Ocultar elementos innecesarios del layout de Streamlit */
+        div[data-testid="stToolbar"],
+        div[data-testid="stDecoration"],
+        div[data-testid="stStatusWidget"],
+        #MainMenu, header, footer {
+            visibility: hidden;
+            height: 0;
         }
 
-        /* Estilo específico para los mensajes del usuario */
-        .user-message {
+        /* Estilos de mensajes */
+        .bot-message, .user-message {
             background-color: #FFFFFF;
             border-style: dotted;
             border-color: #8EA749;
@@ -71,132 +54,104 @@ class ChatStyle:
             padding: 15px;
             color: black;
             font-size: 20px;
-            margin-right: auto;  /* Alinea los mensajes del usuario a la izquierda */
             position: relative;
-            top: -13.5px;  /* Ajusta la posición vertical de los mensajes del usuario */
+            top: -13.5px;
+            margin-bottom: 10px;
         }
+        .bot-message { margin-left: auto; }
+        .user-message { margin-right: auto; }
 
+        /* Contenedor principal */
         .main .block-container {
             width: 100% !important;
             max-width: 80% !important;
-            padding-top: 2rem;
+            min-height: 100vh !important;
+            padding-top: 6rem; /* espacio para el header */
             padding-right: 1rem;
             padding-left: 1rem;
-            padding-bottom: 2rem;
+            padding-bottom: 10rem; /* espacio para el input fijo */
         }
-        
+
+        /* Encabezado fijo */
         .fixed-header {
             position: fixed;
             top: 0;
-            left: 0;
             width: 100%;
-            z-index: 1000;
             background-color: #FFFFFF;
+            z-index: 1000;
             padding: 10px 0;
-        }
-        .header-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             text-align: center;
-            width: 100%;
         }
         .header-image {
-            width: 12.5%; /* Ajusta el ancho de la imagen */
+            width: 12.5%;
             max-width: 100%;
         }
         .header-caption {
-            display: flex;
-            justify-content: center;
-            text-align: center;
-            width: 70%;
-            margin: 60px auto 0 auto;
+            margin-top: 60px;
             font-size: 24px;
         }
-        div[data-testid="stChatInput"] textarea {
-            font-size: 20px;  /* Ajusta el tamaño de la fuente aquí */
-        }
-        /* Estilos adicionales para mejorar la interfaz de chat */
 
+        /* Contenedor del chat con espacio inferior para input */
         .chat-container {
-            margin-top: 40px; /* Espacio para el header fijo */
-            margin-bottom: 20px;
-            max-height: 60vh;
+            max-height: 70vh;
             overflow-y: auto;
-            padding: 10px 0;
+            margin-bottom: 120px; /* espacio para input fijo */
+            padding: 10px;
         }
 
+        /* Input fijo en la parte inferior */
         .input-section {
-            position: sticky;
+            position: fixed;
             bottom: 0;
-            background-color: var(--background-color);
-            padding: 15px 0;
-            border-top: 1px solid var(--border-color);
-            margin-top: 10px;
+            width: 100%;
+            background-color: white;
+            padding: 1rem 1rem 2rem 1rem;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 999;
         }
 
+        /* Estilo para tabs */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 20px;
+            gap: 10px;
             justify-content: center;
         }
-
         .stTabs [data-baseweb="tab"] {
             height: 50px;
             padding: 8px 24px;
             border-radius: 8px;
             font-weight: 500;
         }
-
         .stTabs [aria-selected="true"] {
             background-color: var(--primary-color);
             color: black;
         }
 
-        /* Mejorar el espaciado de los mensajes */
-        .stChatMessage {
-            margin-bottom: 15px;
-        }
-
-        /* Estilo para el botón de enviar audio */
-        .stButton > button[type="primary"] {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-
-        .stButton > button[type="primary"]:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-
-        /* Mejorar la apariencia del audio input */
+        /* Audio input */
         .stAudioInput {
             border: 2px dashed #ddd;
             border-radius: 8px;
             padding: 15px;
-            text-align: center;
             background-color: #f8f9fa;
+            text-align: center;
         }
 
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .chat-container {
-                max-height: 50vh;
-            }
-            
-            .input-section {
-                padding: 10px 0;
-            }
-        }
-
-        /* Animación suave para los mensajes */
+        /* Animación suave para mensajes */
         .stChatMessage {
             animation: fadeIn 0.3s ease-in;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-container {
+                max-height: 60vh;
+            }
+            .header-caption {
+                font-size: 18px;
+            }
         }
         </style>
     """
@@ -471,18 +426,10 @@ class ChatbotApi:
             )
 
             if audio_file is not None:
-                # Show audio file info
-                st.info(f"📎 Audio grabado: {audio_file.name}")
-
-                col1, col2, col3 = st.columns([1, 1, 2])
-                with col1:
-                    if st.button(
-                        "🎵 Enviar audio", disabled=self.is_processing, type="primary"
-                    ):
-                        return self._process_audio_input(audio_file)
-                with col2:
-                    if st.button("🗑️ Cancelar", disabled=self.is_processing):
-                        st.rerun()
+                if st.button(
+                    "🎵 Enviar audio", disabled=self.is_processing, type="primary"
+                ):
+                    return self._process_audio_input(audio_file)
 
         st.markdown("</div>", unsafe_allow_html=True)
         return False
@@ -492,8 +439,6 @@ class ChatbotApi:
         self.is_processing = True
 
         try:
-            st.success("📤 Enviando audio...")
-
             files = {"audio": (audio_file.name, audio_file, "audio/wav")}
             data = {"phone": self.phone}
             headers = {"Authorization": f"Bearer {os.getenv('SHARED_AUTH_TOKEN')}"}
